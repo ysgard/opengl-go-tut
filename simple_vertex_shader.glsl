@@ -1,9 +1,7 @@
 #version 330 core
 // Input vertex data, different for all executions of this shader.
-attribute vec3 vertexPosition_modelspace;
-
+in vec4 pv;
 void main(){
 
-	gl_Position = vec4(vertexPosition_modelspace, 1.0);
-
+	gl_Position = pv;
 }
