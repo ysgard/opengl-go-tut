@@ -18,12 +18,18 @@ const (
 	Height = 600
 )
 
+
+
+
+
 func main() {
 	// Always call init first
 	if err := glfw.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "glfw: %s\n", err)
 		return
 	}
+
+	LoadShaders("This", "that")
 
 	// Set Window hints - necessary information before we can
 	// call the underlying OpenGL context.
