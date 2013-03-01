@@ -20,21 +20,21 @@ const (
 func main() {
 	// Always call init first
 	if err := glfw.Init(); err != nil {
-		fmt.Fprintf(os.Stderr, "glfw: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Cannot init: glfw: %s\n", err)
 		return
 	}
 
 	// Set Window hints - necessary information before we can
 	// call the underlying OpenGL context.
 	glfw.OpenWindowHint(glfw.FsaaSamples, 4)        // 4x antialiasing
-	glfw.OpenWindowHint(glfw.OpenGLVersionMajor, 3) // OpenGL 3.3
-	glfw.OpenWindowHint(glfw.OpenGLVersionMinor, 3)
+	glfw.OpenWindowHint(glfw.OpenGLVersionMajor, 3) // OpenGL 3.2
+	glfw.OpenWindowHint(glfw.OpenGLVersionMinor, 2)
 	// We want the new OpenGL
 	glfw.OpenWindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 
 	// Open a window and initialize its OpenGL context
 	if err := glfw.OpenWindow(Width, Height, 0, 0, 0, 0, 32, 0, glfw.Windowed); err != nil {
-		fmt.Fprintf(os.Stderr, "glfw: %s\n")
+		fmt.Fprintf(os.Stderr, "OpenWindow failed: glfw: %s\n")
 		return
 	}
 	// Go idiom - this function will be called right after its enclosing function (main)
