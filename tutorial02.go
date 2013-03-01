@@ -18,10 +18,6 @@ const (
 	Height = 600
 )
 
-
-
-
-
 func main() {
 	// Always call init first
 	if err := glfw.Init(); err != nil {
@@ -29,13 +25,11 @@ func main() {
 		return
 	}
 
-	LoadShaders("This", "that")
-
 	// Set Window hints - necessary information before we can
 	// call the underlying OpenGL context.
 	glfw.OpenWindowHint(glfw.FsaaSamples, 4)        // 4x antialiasing
 	glfw.OpenWindowHint(glfw.OpenGLVersionMajor, 3) // OpenGL 3.3
-	glfw.OpenWindowHint(glfw.OpenGLVersionMinor, 3)
+	glfw.OpenWindowHint(glfw.OpenGLVersionMinor, 2)
 	// We want the new OpenGL
 	glfw.OpenWindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
 
@@ -84,14 +78,26 @@ func main() {
 	//fmt.Fprintf(os.Stdout, "Got this far.  vertexBufferData length: %d\n", len(vertexBufferData))
 	//fmt.Fprintf(os.Stdout, "unsafe.Sizeof(vertexBufferData) - %v \n", unsafe.Sizeof(vertexBufferData))
 
-
+	// Load Shaders
+	var programID gl.Uint = LoadShaders(
+		"simple_vertex_shader.glsl",
+		"simple_fragment_shader.glsl")
+	gl.ValidateProgram(programID)
+	var validationErr gl.Int 
+	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
+	if validationErr == gl.FALSE {
+		fmt.Fprintf(os.Stderr, "Shader program failed validation!")
+	}
 
 	// Main loop - run until it dies, or we find something better
 	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) && 
 		(glfw.WindowParam(glfw.Opened) == 1) {
 
 		// Clear the screen
-		gl.Clear(gl.COLOR_BUFFER_BIT)
+		gl.Clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)
+
+		// Want to use our loaded shaders
+		gl.UseProgram(programID)
 
 		// 1st attribute buffer: vertices
 		gl.EnableVertexAttribArray(0)
