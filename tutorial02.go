@@ -10,6 +10,7 @@ import (
 	"github.com/jteeuwen/glfw"
 	"os"
 	"unsafe"
+	"runtime"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 )
 
 func main() {
+	runtime.LockOSThread()
 	// Always call init first
 	if err := glfw.Init(); err != nil {
 		fmt.Fprintf(os.Stderr, "glfw: %s\n", err)
@@ -48,6 +50,19 @@ func main() {
 
 	// Initialize OpenGL, make sure we terminate before leaving.
 	gl.Init()
+
+	// Load Shaders
+	var programID gl.Uint = LoadShaders(
+		"simple_vertex_shader.glsl",
+		"simple_fragment_shader.glsl")
+	gl.ValidateProgram(programID)
+	var validationErr gl.Int 
+	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
+	if validationErr == gl.FALSE {
+		fmt.Fprintf(os.Stderr, "Shader program failed validation!")
+	}
+
+	
 	// Time to create some graphics!  
 	var vertexArrayID gl.Uint = 0
 	gl.GenVertexArrays(1, &vertexArrayID)
@@ -78,16 +93,7 @@ func main() {
 	//fmt.Fprintf(os.Stdout, "Got this far.  vertexBufferData length: %d\n", len(vertexBufferData))
 	//fmt.Fprintf(os.Stdout, "unsafe.Sizeof(vertexBufferData) - %v \n", unsafe.Sizeof(vertexBufferData))
 
-	// Load Shaders
-	var programID gl.Uint = LoadShaders(
-		"simple_vertex_shader.glsl",
-		"simple_fragment_shader.glsl")
-	gl.ValidateProgram(programID)
-	var validationErr gl.Int 
-	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
-	if validationErr == gl.FALSE {
-		fmt.Fprintf(os.Stderr, "Shader program failed validation!")
-	}
+	
 
 	// Main loop - run until it dies, or we find something better
 	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) && 

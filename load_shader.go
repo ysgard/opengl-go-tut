@@ -1,11 +1,10 @@
-/* Loads fragment and vertex shader code from the supplied file. */
+/* Loads fragment and vertex shader code from the supplied files. */
 
 package main 
 
 import (
 	gl "github.com/chsc/gogl/gl33"
 	"fmt"
-	//"unsafe"
 	"bufio"
 	"os"
 	"bytes"
@@ -29,7 +28,7 @@ func ReadSourceFile(filename string) (string, error) {
 		line, err := r.ReadString('\n')
 		buffer.WriteString(line)
 		if err == io.EOF {
-			// We've read the last string. Make sure there's an end of line.
+			// We've read the last string. Make sure there's a null byte.
 			buffer.WriteByte('\000')
 			break
 		}
@@ -49,7 +48,8 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 	// Read the Vertex shader code from the file
 	vertexShaderCode, err := ReadSourceFile(vertexShaderFilePath)
 	if err != nil { return 0 }
-	fmt.Fprintf(os.Stdout, vertexShaderCode)
+	//fmt.Fprintf(os.Stdout, vertexShaderCode)
+	//fmt.Fprintf(os.Stdout, vSrc)
 
 	// Read the Fragment shader code from the file
 	fragmentShaderCode, err := ReadSourceFile(fragmentShaderFilePath)
@@ -63,13 +63,17 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 	glslVertexCode := gl.GLStringArray(vertexShaderCode)
 	defer gl.GLStringArrayFree(glslVertexCode)
 	gl.ShaderSource(vertexShaderID, gl.Sizei(len(glslVertexCode)), &glslVertexCode[0], nil)
+	gl.CompileShader(vertexShaderID)
 
 	// Check Vertex Shader
 	gl.GetShaderiv(vertexShaderID, gl.COMPILE_STATUS, &result)
 	gl.GetShaderiv(vertexShaderID, gl.INFO_LOG_LENGTH, &infoLogLength)
-	vertexErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
-	gl.GetShaderInfoLog(vertexShaderID, gl.Sizei(infoLogLength), nil, vertexErrorMsg)
-	fmt.Fprintf(os.Stdout, "Vertex Info: %s\n", gl.GoString(vertexErrorMsg))
+	if infoLogLength > 0 {
+		vertexErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
+		defer gl.GLStringFree(vertexErrorMsg)
+		gl.GetShaderInfoLog(vertexShaderID, gl.Sizei(infoLogLength), nil, vertexErrorMsg)
+		fmt.Fprintf(os.Stdout, "Vertex Info: %s\n", gl.GoString(vertexErrorMsg))
+	}
 	if result == gl.FALSE {
 		fmt.Fprintf(os.Stderr, "Vertex shader compile failed!\n")
 	}
@@ -77,17 +81,17 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 	// Compile the Fragment Shader
 	fmt.Fprintf(os.Stdout, "Compiling shader : %s\n", fragmentShaderFilePath)
 	glslFragmentCode := gl.GLStringArray(fragmentShaderCode)
-	defer gl.GLStringArrayFree(glslFragmentCode)
 	gl.ShaderSource(fragmentShaderID, gl.Sizei(len(glslFragmentCode)), &glslFragmentCode[0], nil)
+	gl.CompileShader(fragmentShaderID)
 
 	// Check the Fragment Shader
 	gl.GetShaderiv(fragmentShaderID, gl.COMPILE_STATUS, &result)
 	gl.GetShaderiv(fragmentShaderID, gl.INFO_LOG_LENGTH, &infoLogLength)
-	fragmentErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
-	gl.GetShaderInfoLog(fragmentShaderID, gl.Sizei(infoLogLength), nil, fragmentErrorMsg)
-	fmt.Fprintf(os.Stdout, "Fragment Info: %s\n", string(*fragmentErrorMsg))
-	if result == gl.FALSE {
-		fmt.Fprintf(os.Stderr, "Fragment shader compile failed!\n")
+	if infoLogLength > 0 {
+		fragmentErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
+		defer gl.GLStringFree(fragmentErrorMsg)
+		gl.GetShaderInfoLog(fragmentShaderID, gl.Sizei(infoLogLength), nil, fragmentErrorMsg)
+		fmt.Fprintf(os.Stdout, "Fragment Info: %s\n", gl.GoString(fragmentErrorMsg))
 	}
 
 	// Link the shader program
@@ -100,11 +104,12 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 	// Check the program
 	gl.GetProgramiv(ProgramID, gl.LINK_STATUS, &result)
 	gl.GetProgramiv(ProgramID, gl.INFO_LOG_LENGTH, &infoLogLength)
-	programErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
-	gl.GetProgramInfoLog(ProgramID, gl.Sizei(infoLogLength), nil, programErrorMsg)
-	fmt.Fprintf(os.Stdout, "Program Info: %s\n", string(*programErrorMsg))
-
+	if infoLogLength > 0 {
+		programErrorMsg := gl.GLStringAlloc(gl.Sizei(infoLogLength))
+		gl.GetProgramInfoLog(ProgramID, gl.Sizei(infoLogLength), nil, programErrorMsg)
+		fmt.Fprintf(os.Stdout, "Program Info: %s\n", gl.GoString(programErrorMsg))
+	}
+	
+	fmt.Fprintf(os.Stdout, "LoadShader completed, ProgramID: %d", ProgramID)
 	return ProgramID
 }
-
-// Returns a '\n'-delimited string
