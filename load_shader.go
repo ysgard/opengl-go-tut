@@ -110,6 +110,6 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 		fmt.Fprintf(os.Stdout, "Program Info: %s\n", gl.GoString(programErrorMsg))
 	}
 	
-	fmt.Fprintf(os.Stdout, "LoadShader completed, ProgramID: %d", ProgramID)
+	fmt.Fprintf(os.Stdout, "LoadShader completed, ProgramID: %d\n", ProgramID)
 	return ProgramID
 }

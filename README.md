@@ -12,7 +12,7 @@ Third Party Packages Required
 
 GoGL: 		https://github.com/chsc/gogl
 GLFW:		https://github.com/go-gl/glfw
-GoMatrix:	https://github.com/skelterjohn/go.matrix
+MathGL:		https://github.com/Jragonmiris/mathgl
 
 Implemented Tutorials
 =====================
