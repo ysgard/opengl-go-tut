@@ -1,0 +1,15 @@
+#version 330 core
+
+// Ouput data
+out vec3 color;
+
+// Input color from vertex shader
+in vec3 fragmentColor;
+
+void main()
+{
+
+	// Output color = in color
+	color = fragmentColor;
+
+}
