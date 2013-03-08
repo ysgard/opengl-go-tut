@@ -7,7 +7,7 @@ package main
 import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
-	"github.com/jteeuwen/glfw"
+	"github.com/go-gl/glfw"
 	"os"
 	"unsafe"
 	"runtime"
