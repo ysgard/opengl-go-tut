@@ -2,7 +2,7 @@
 Package bitmap implements a simple type to load, hold and manipulate bitmaps.
 
 */
-package bitmap
+package main
 
 import(
 	"os"
@@ -58,6 +58,14 @@ func (b *Bitmap) Load(path string) (int, error) {
 	b.width = binary.LittleEndian.Uint32(b.header[18:22])
 	b.height = binary.LittleEndian.Uint32(b.header[22:26])
 
+	// Sanity checks
+	if (b.imageSize == 0) {
+		b.imageSize = b.width * b.height * 3; // one byte per color
+	}
+	if (b.dataPos == 0) {
+		b.dataPos = 54; // BMP header done that way.
+	}
+
 	// Allocate appropriate slice to hold the data
 	b.data = make([]byte, b.imageSize)
 	// Seek to image data offset
@@ -77,6 +85,15 @@ func (b *Bitmap) Info() {
 	fmt.Fprintf(os.Stdout, "Header data:\n")
 	for i, val := range b.header {
 		fmt.Fprintf(os.Stdout, "%0x ", val)
+		if (i + 1) % 8 == 0 {
+			fmt.Fprintf(os.Stdout, "\n")
+		}
+	}
+	// Report the first 16 bytes of data, so we can compare
+	// and check that data is correct
+	fmt.Println("\n****** DATA ******")
+	for i := 0; i < 16; i++ {
+		fmt.Fprintf(os.Stdout, "%x ", b.data[i])
 		if (i + 1) % 8 == 0 {
 			fmt.Fprintf(os.Stdout, "\n")
 		}
