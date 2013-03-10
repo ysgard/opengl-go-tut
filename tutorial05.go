@@ -16,10 +16,33 @@ import (
 )
 
 const (
-	Title  = "Tutorial 03"
+	Title  = "Tutorial 05"
 	Width  = 800
 	Height = 600
 )
+
+func loadTGA(imagePath string) gl.Uint {
+	// Create one OpenGL texture
+	var txid gl.Uint
+	gl.GenTextures(1, &txid)
+
+	// "Bind" the newly created texture: all future functions will modify this texture
+	gl.BindTexture(gl.TEXTURE_2D, txid)
+
+	// Read the file, call glTexImage2d with the right parameters
+	glfw.LoadTexture2D(imagePath, 0)
+
+	// Nice trilinear filtering.
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+	gl.GenerateMipmap(gl.TEXTURE_2D)
+
+	// Return the ID of the texture we just created
+	return txid
+}
+
 
 func main() {
 	runtime.LockOSThread()
@@ -54,7 +77,7 @@ func main() {
 	gl.Init()
 
 	// Dark blue background
-	gl.ClearColor(0.0, 0.0, 0.4, 0.0)
+	gl.ClearColor(0.0, 0.0, 0.01, 0.0)
 
 	// Load Shaders
 	var programID gl.Uint = LoadShaders(
@@ -101,21 +124,8 @@ func main() {
 	}*/
 
 	// Load the texture
-	bitmap, _ := NewBitmap("CDtest.BMP")
-	var texture gl.Uint = 23  // Why?  Dunno where this comes from.
+	texture := loadTGA("liske.tga")
 	var textureID gl.Int = gl.GetUniformLocation(programID, gl.GLString("myTextureSampler"))
-
-	// "Bind" the newly created texture
-	gl.BindTexture(gl.TEXTURE_2D, (gl.Uint)(textureID))
-
-	// Give the image to OpenGL
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB, 
-		gl.Sizei(bitmap.width), gl.Sizei(bitmap.height),
-		 0, gl.BGR, gl.UNSIGNED_BYTE, gl.Pointer(&bitmap.data[0]))
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-
-
 
 	// Three consecutive floats give a single 3D vertex
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2 = 12 triangles,
@@ -173,89 +183,79 @@ func main() {
 	// Two UV coordinated for each vertex.  They were created with
 	// Blender.  You'll learn shortly how to do this yourself.
 	uvBufferData := [...]gl.Float{
-		0.000059, 1.0-0.000004, 
-        0.000103, 1.0-0.336048, 
-        0.335973, 1.0-0.335903, 
-        1.000023, 1.0-0.000013, 
-        0.667979, 1.0-0.335851, 
-        0.999958, 1.0-0.336064, 
-        0.667979, 1.0-0.335851, 
-        0.336024, 1.0-0.671877, 
-        0.667969, 1.0-0.671889, 
-        1.000023, 1.0-0.000013, 
-        0.668104, 1.0-0.000013, 
-        0.667979, 1.0-0.335851, 
-        0.000059, 1.0-0.000004, 
-        0.335973, 1.0-0.335903, 
-        0.336098, 1.0-0.000071, 
-        0.667979, 1.0-0.335851, 
-        0.335973, 1.0-0.335903, 
-        0.336024, 1.0-0.671877, 
-        1.000004, 1.0-0.671847, 
-        0.999958, 1.0-0.336064, 
-        0.667979, 1.0-0.335851, 
-        0.668104, 1.0-0.000013, 
-        0.335973, 1.0-0.335903, 
-        0.667979, 1.0-0.335851, 
-        0.335973, 1.0-0.335903, 
-        0.668104, 1.0-0.000013, 
-        0.336098, 1.0-0.000071, 
-        0.000103, 1.0-0.336048, 
-        0.000004, 1.0-0.671870, 
-        0.336024, 1.0-0.671877, 
-        0.000103, 1.0-0.336048, 
-        0.336024, 1.0-0.671877, 
-        0.335973, 1.0-0.335903, 
-        0.667969, 1.0-0.671889, 
-        1.000004, 1.0-0.671847, 
-        0.667979, 1.0-0.335851,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+		0.0, 1.0,
+				// 0.000059, 1.0-0.000004, 
+				//       0.000103, 1.0-0.336048, 
+			   //       0.335973, 1.0-0.335903, 
+			  //       1.000023, 1.0-0.000013, 
+			  //       0.667979, 1.0-0.335851, 
+			  //       0.999958, 1.0-0.336064, 
+			  //       0.667979, 1.0-0.335851, 
+			  //       0.336024, 1.0-0.671877, 
+			  //       0.667969, 1.0-0.671889, 
+			  //       1.000023, 1.0-0.000013, 
+			  //       0.668104, 1.0-0.000013, 
+			  //       0.667979, 1.0-0.335851, 
+			  //       0.000059, 1.0-0.000004, 
+			  //       0.335973, 1.0-0.335903, 
+			  //       0.336098, 1.0-0.000071, 
+			  //       0.667979, 1.0-0.335851, 
+			  //       0.335973, 1.0-0.335903, 
+			  //       0.336024, 1.0-0.671877, 
+			  //       1.000004, 1.0-0.671847, 
+			  //       0.999958, 1.0-0.336064, 
+			  //       0.667979, 1.0-0.335851, 
+			  //       0.668104, 1.0-0.000013, 
+			  //       0.335973, 1.0-0.335903, 
+			  //       0.667979, 1.0-0.335851, 
+			  //       0.335973, 1.0-0.335903, 
+			  //       0.668104, 1.0-0.000013, 
+			  //       0.336098, 1.0-0.000071, 
+			  //       0.000103, 1.0-0.336048, 
+			  //       0.000004, 1.0-0.671870, 
+			  //       0.336024, 1.0-0.671877, 
+			  //       0.000103, 1.0-0.336048, 
+			  //       0.336024, 1.0-0.671877, 
+			  //       0.335973, 1.0-0.335903, 
+			  //       0.667969, 1.0-0.671889, 
+			  //       1.000004, 1.0-0.671847, 
+			  //       0.667979, 1.0-0.335851,
 	}
-
-
-	// One color for each vertex. They were generated randomly.
-	/*colorBufferData := [...]gl.Float{
-		0.583, 0.771, 0.014,
-		0.609, 0.115, 0.436,
-		0.327, 0.483, 0.844,
-		0.822, 0.569, 0.201,
-		0.435, 0.602, 0.223,
-		0.310, 0.747, 0.185,
-		0.597, 0.770, 0.761,
-		0.559, 0.436, 0.730,
-		0.359, 0.583, 0.152,
-		0.483, 0.596, 0.789,
-		0.559, 0.861, 0.639,
-		0.195, 0.548, 0.859,
-		0.014, 0.184, 0.576,
-		0.771, 0.328, 0.970,
-		0.406, 0.615, 0.116,
-		0.676, 0.977, 0.133,
-		0.971, 0.572, 0.833,
-		0.140, 0.616, 0.489,
-		0.997, 0.513, 0.064,
-		0.945, 0.719, 0.592,
-		0.543, 0.021, 0.978,
-		0.279, 0.317, 0.505,
-		0.167, 0.620, 0.077,
-		0.347, 0.857, 0.137,
-		0.055, 0.953, 0.042,
-		0.714, 0.505, 0.345,
-		0.783, 0.290, 0.734,
-		0.722, 0.645, 0.174,
-		0.302, 0.455, 0.848,
-		0.225, 0.587, 0.040,
-		0.517, 0.713, 0.338,
-		0.053, 0.959, 0.120,
-		0.393, 0.621, 0.362,
-		0.673, 0.211, 0.457,
-		0.820, 0.883, 0.371,
-		0.982, 0.099, 0.879,
-	}*/
-
-
-
-
-
 
 	// Time to draw this sucker.
 	var vertexBuffer gl.Uint                 // id the vertex buffer
