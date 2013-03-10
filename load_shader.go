@@ -81,6 +81,7 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 	// Compile the Fragment Shader
 	fmt.Fprintf(os.Stdout, "Compiling shader : %s\n", fragmentShaderFilePath)
 	glslFragmentCode := gl.GLStringArray(fragmentShaderCode)
+	defer gl.GLStringArrayFree(glslFragmentCode)
 	gl.ShaderSource(fragmentShaderID, gl.Sizei(len(glslFragmentCode)), &glslFragmentCode[0], nil)
 	gl.CompileShader(fragmentShaderID)
 
@@ -92,6 +93,9 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 		defer gl.GLStringFree(fragmentErrorMsg)
 		gl.GetShaderInfoLog(fragmentShaderID, gl.Sizei(infoLogLength), nil, fragmentErrorMsg)
 		fmt.Fprintf(os.Stdout, "Fragment Info: %s\n", gl.GoString(fragmentErrorMsg))
+	}
+	if result == gl.FALSE {
+		fmt.Fprintf(os.Stderr, "Fragment shader compile failed!\n")
 	}
 
 	// Link the shader program
