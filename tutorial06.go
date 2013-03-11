@@ -314,15 +314,17 @@ func main() {
 		// Want to use our loaded shaders
 		gl.UseProgram(programID)
 
+		// Generate new MVP from mouse activity
+		computeMatricesFromInputs()
+		//model := mathgl.Ident4f()
+		MVP = ProjectionMatrix.Mul4(ViewMatrix.Mul4(model)) // projection * view * mod
+
 		// Perform the translation of the camera viewpoint
 		// by sending the requested operation to the vertex shader
 		//mvpm := [16]gl.Float{0.93, -0.85, -0.68, -0.68, 0.0, 1.77, -0.51, -0.51, -1.24, -0.63, -0.51, -0.51, 0.0, 0.0, 5.65, 5.83}
 		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
-		// Generate new MVP from mouse activity
-		computeMatricesFromInputs()
-		//model := mathgl.Ident4f()
-		MVP = ProjectionMatrix.Mul4(ViewMatrix).Mul4(model) // projection * view * mod
+		
 
 		fmt.Printf("Iteration %d\n", iter)
 		dump4f(MVP)
