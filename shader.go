@@ -1,6 +1,6 @@
 /* Loads fragment and vertex shader code from the supplied files. */
 
-package main 
+package main
 
 import (
 	gl "github.com/chsc/gogl/gl33"

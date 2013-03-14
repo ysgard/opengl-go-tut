@@ -26,8 +26,8 @@ var bgRed, bgGreen, bgBlue, bgAlpha gl.Float = 0.0, 0.0, 0.0, 0.0
 var currentShader gl.Uint
 // Shader filenames
 var shaders = []string{
-	"triangle.vertexshader",
-	"triangle.fragmentshader",
+	"shaders/triangle.vertexshader",
+	"shaders/triangle.fragmentshader",
 }
 
 func glfwInitWindow() {
