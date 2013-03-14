@@ -72,11 +72,15 @@ func loadOBJ( filePath string ) ([]mathgl.Vec3f, []mathgl.Vec2f, []mathgl.Vec3f)
 			var normal = mathgl.Vec3f{words[1], words[2], words[3]}
 			normals = append(normals, normal)
 		case "f":
-
-
-
-
-
+			vi1, uvi1, ni1 := decipherFace(word[1])
+			vi2, uvi2, ni2 := decipherFace(word[2])
+			vi3, uvi3, ni3 := decipherFace(word[3])
+			vertexIndices = append(vertexIndices, vi1, vi2, vi3)
+			uvIndices = append(uvIndices, uvi1, uvi2, uvi3)
+			normalIndices = append(normalIndices, ni1, ni2, ni3)
+		default:
+			continue
+		}
 	}
 
 }
