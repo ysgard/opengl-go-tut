@@ -31,15 +31,9 @@ var initialFoV float32 = 45.0
 var speed float32 = 3.0	// 3 units / second
 var mouseSpeed float32 = 0.005
 
-func lCos(op float32) float32 {
-	hop := (float64)(op)
-	return (float32)(math.Cos(hop))
-}
-
-func lSin(op float32) float32 {
-	hop := (float64)(op)
- 	return (float32)(math.Sin(hop))
-}
+// Low precision wrappers for the high-precision trig funcs
+func lCos(op float32) float32 { return (float32)(math.Cos((float64)(op))) }
+func lSin(op float32) float32 { return (float32)(math.Sin((float64)(op))) }
 
 func computeMatricesFromInputs() {
 

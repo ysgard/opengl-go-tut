@@ -2,28 +2,30 @@
 triangle.go - simple program to follow the tutorial at
 http://arcsynthesis.org/gltut
 */
-package main 
+package main
 
 import (
-	"runtime"
-	"os"
 	"fmt"
-	"unsafe"
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
+	"os"
+	"runtime"
+	"unsafe"
 	//"github.com/Jragonmiris/mathgl"
 )
 
 const (
-	Width	= 1024
-	Height	= 768
-	Title	= "Tutorial07"
+	Width  = 1024
+	Height = 768
+	Title  = "Tutorial07"
 )
 
 // Default background color is black
 var bgRed, bgGreen, bgBlue, bgAlpha gl.Float = 0.0, 0.0, 0.0, 0.0
+
 // Current Shader program, set to nothing initially
 var currentShader gl.Uint
+
 // Shader filenames
 var shaders = []string{
 	"shaders/triangle.vertexshader",
@@ -61,10 +63,6 @@ func glInit() {
 	gl.BindVertexArray(vertexArrayID)
 }
 
-
-
-
-
 // displayWindow - render an OpenGL frame, this function should be called
 // from the main loop
 func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei) {
@@ -81,12 +79,12 @@ func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei) {
 	// Vertex position buffer
 	gl.EnableVertexAttribArray(0)
 	gl.VertexAttribPointer(
-		0,			// Vertex array to use (Position)
-		4, 			// number of floats per vertex
-		gl.FLOAT, 	// Type of the value (32-bit float)
-		gl.FALSE, 	// Normalized?
-		0,			// Stride
-		nil, 		// Array buffer offset
+		0,        // Vertex array to use (Position)
+		4,        // number of floats per vertex
+		gl.FLOAT, // Type of the value (32-bit float)
+		gl.FALSE, // Normalized?
+		0,        // Stride
+		nil,      // Array buffer offset
 	)
 
 	// Bind the color array
@@ -94,18 +92,18 @@ func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei) {
 	// Vertex color buffer
 	gl.EnableVertexAttribArray(1)
 	gl.VertexAttribPointer(
-		1,			// Vertex array to use (Color)
-		4,			// Number of floats per color (R, G, B, A)
-		gl.FLOAT,	// type of value
-		gl.FALSE,	// Normalized?
-		0,			// stride
+		1,        // Vertex array to use (Color)
+		4,        // Number of floats per color (R, G, B, A)
+		gl.FLOAT, // type of value
+		gl.FALSE, // Normalized?
+		0,        // stride
 		// Array buffer offset.  In this case, the color data is located
 		// right after the vertex data. 3(#) * 4(XYZW) * 4(bytes/float) = 48 bytes
 		nil,
 	)
 
 	// Draw the vertices
-	gl.DrawArrays(gl.TRIANGLES, 0, vertexCount) 
+	gl.DrawArrays(gl.TRIANGLES, 0, vertexCount)
 
 	// Disable the vertex attribute arrays, reset shader
 	gl.DisableVertexAttribArray(0)
@@ -117,12 +115,10 @@ func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei) {
 
 }
 
-
 func initializeVertexBuffer(vertices []gl.Float) (gl.Uint, gl.Sizei) {
 	// Create the vertex buffer object
 	var buf gl.Uint
 	gl.GenBuffers(1, &buf)
-	
 
 	// Now load the buffer with the data
 	gl.BindBuffer(gl.ARRAY_BUFFER, buf)
@@ -135,8 +131,6 @@ func initializeVertexBuffer(vertices []gl.Float) (gl.Uint, gl.Sizei) {
 
 	return buf, (gl.Sizei)(bufferLen)
 }
-
-
 
 func main() {
 	// Sit. Good boy.
@@ -162,7 +156,6 @@ func main() {
 		gl.Viewport(0, 0, (gl.Sizei)(w), (gl.Sizei)(h))
 	})
 
-
 	// Data prep.  Make it a slice
 	vertexPositions := []gl.Float{
 		// vertex data in XYZW format
@@ -181,11 +174,9 @@ func main() {
 	// Load the shaders
 	currentShader = CreateShaderProgram(shaders)
 
-
 	// Main loop - run until it dies, or we find something better
-	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) && 
+	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) &&
 		(glfw.WindowParam(glfw.Opened) == 1) {
-
 
 		vertexBuffer, vertexCount := initializeVertexBuffer(vertexPositions)
 		vertexColors, _ := initializeVertexBuffer(vertexColors)

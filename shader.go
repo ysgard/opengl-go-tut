@@ -3,12 +3,12 @@
 package main
 
 import (
-	gl "github.com/chsc/gogl/gl33"
-	"fmt"
 	"bufio"
-	"os"
 	"bytes"
+	"fmt"
+	gl "github.com/chsc/gogl/gl33"
 	"io"
+	"os"
 	"path/filepath"
 )
 
@@ -39,18 +39,20 @@ func ReadSourceFile(filename string) (string, error) {
 }
 
 // Create and Compile a shader, and return its object
-func CreateShader(shaderType gl.Enum, filePath string) (gl.Uint) {
-	
+func CreateShader(shaderType gl.Enum, filePath string) gl.Uint {
+
 	// Start by creating the shader object
-	if (shaderType != gl.VERTEX_SHADER ) && (shaderType != gl.FRAGMENT_SHADER) {
+	if (shaderType != gl.VERTEX_SHADER) && (shaderType != gl.FRAGMENT_SHADER) {
 		fmt.Fprintf(os.Stderr, "User error - not a supported shader type passed to CreateShader\n")
 		return 0
 	}
 	shaderId := gl.CreateShader(shaderType)
-	
+
 	// Load the GLSL source code from the shader file
 	shaderCode, err := ReadSourceFile(filePath)
-	if err != nil { return 0 }
+	if err != nil {
+		return 0
+	}
 
 	// Compile the shader
 	var result gl.Int = gl.TRUE
@@ -80,8 +82,8 @@ func CreateShader(shaderType gl.Enum, filePath string) (gl.Uint) {
 
 // CreateShaderProgram - create a shader program and attach the various shader objects
 // defined by the files in the slice, then return the programID.
-func CreateShaderProgram(shaderFiles []string) (gl.Uint) {
-	
+func CreateShaderProgram(shaderFiles []string) gl.Uint {
+
 	// Create the Program object
 	var ProgramID gl.Uint = gl.CreateProgram()
 
@@ -89,17 +91,17 @@ func CreateShaderProgram(shaderFiles []string) (gl.Uint) {
 	// that type.
 	var sid gl.Uint = 0
 	for _, shader := range shaderFiles {
-		sid = 0 
+		sid = 0
 		switch extension := filepath.Ext(shader); extension {
-			case ".vertexshader":
-				sid = CreateShader(gl.VERTEX_SHADER, shader)
+		case ".vertexshader":
+			sid = CreateShader(gl.VERTEX_SHADER, shader)
 
-			case ".fragmentshader":
-				sid = CreateShader(gl.FRAGMENT_SHADER, shader)
+		case ".fragmentshader":
+			sid = CreateShader(gl.FRAGMENT_SHADER, shader)
 
-			default:
-				fmt.Fprintf(os.Stderr, "Don't understand extension %s\n", extension)
-				fmt.Fprintf(os.Stderr, "Accepted extensions: .fragmentshader, .vertexshader")
+		default:
+			fmt.Fprintf(os.Stderr, "Don't understand extension %s\n", extension)
+			fmt.Fprintf(os.Stderr, "Accepted extensions: .fragmentshader, .vertexshader")
 		}
 		if sid != 0 {
 			gl.AttachShader(ProgramID, sid)
@@ -120,9 +122,7 @@ func CreateShaderProgram(shaderFiles []string) (gl.Uint) {
 		gl.GetProgramInfoLog(ProgramID, gl.Sizei(infoLogLength), nil, programErrorMsg)
 		fmt.Fprintf(os.Stdout, "Program Info: %s\n", gl.GoString(programErrorMsg))
 	}
-	
+
 	fmt.Fprintf(os.Stdout, "\nLoadShader completed, ProgramID: %d\n", ProgramID)
 	return ProgramID
 }
-
-
