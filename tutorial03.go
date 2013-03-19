@@ -22,6 +22,11 @@ const (
 	Height = 600
 )
 
+const (
+	VertexFile = "shaders/simple_transform.vertexshader",
+	FragementFile = "shaders/simple_color.fragmentshader"
+)
+
 
 func main() {
 	runtime.LockOSThread()
@@ -60,8 +65,8 @@ func main() {
 
 	// Load Shaders
 	var programID gl.Uint = LoadShaders(
-		"simple_transform.vertexshader",
-		"simple_color.fragmentshader")
+		VertexFile,
+		FragementFile)
 	gl.ValidateProgram(programID)
 	var validationErr gl.Int 
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)

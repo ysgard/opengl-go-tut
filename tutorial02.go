@@ -53,8 +53,8 @@ func main() {
 
 	// Load Shaders
 	var programID gl.Uint = LoadShaders(
-		"simple_vertex_shader.glsl",
-		"simple_fragment_shader.glsl")
+		"shaders/simple_vertex_shader.glsl",
+		"shaders/simple_fragment_shader.glsl")
 	gl.ValidateProgram(programID)
 	var validationErr gl.Int 
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)

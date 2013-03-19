@@ -18,10 +18,15 @@ import (
 )
 
 const (
-	Title  = "Tutorial 03"
+	Title  = "Tutorial 04"
 	Width  = 800
 	Height = 600
 )
+
+const (
+	VertexFile = "shaders/cube_transform.vertexshader"
+	FragmentFile = "shaders/cube_color.fragmentshader")
+
 
 func main() {
 	runtime.LockOSThread()
@@ -60,8 +65,8 @@ func main() {
 
 	// Load Shaders
 	var programID gl.Uint = LoadShaders(
-		"cube_transform.vertexshader",
-		"cube_color.fragmentshader")
+		VertexFile,
+		FragmentFile)
 	gl.ValidateProgram(programID)
 	var validationErr gl.Int
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)

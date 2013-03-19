@@ -21,6 +21,12 @@ const (
 	Height = 600
 )
 
+const (
+	VertexFile = "shaders/cube_texture.vertexshader"
+	FragmentFile = "shaders/cube_texture.fragmentshader"
+	TextureFile = "art/liske.tga"
+)
+
 func loadTGA(imagePath string) gl.Uint {
 	// Create one OpenGL texture
 	var txid gl.Uint
@@ -80,8 +86,8 @@ func main() {
 
 	// Load Shaders
 	var programID gl.Uint = LoadShaders(
-		"cube_texture.vertexshader",
-		"cube_texture.fragmentshader")
+		VertexFile,
+		FragmentFile)
 	gl.ValidateProgram(programID)
 	var validationErr gl.Int
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
@@ -121,7 +127,7 @@ func main() {
 	}*/
 
 	// Load the texture
-	texture := loadTGA("liske.tga")
+	texture := loadTGA(TextureFile)
 	var textureID gl.Int = gl.GetUniformLocation(programID, gl.GLString("myTextureSampler"))
 
 	// Three consecutive floats give a single 3D vertex
