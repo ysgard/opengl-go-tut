@@ -25,6 +25,7 @@ var bgRed, bgGreen, bgBlue, bgAlpha gl.Float = 0.0, 0.0, 0.0, 0.0
 // Current Shader program, set to nothing initially, and uniform shader vars
 var currentShader gl.Uint
 var elapsedTimeUniform gl.Int
+var loopDurationUnf gl.Int
 
 // Shader filenames
 var shaders = []string{
@@ -60,7 +61,7 @@ func glInit() {
 	// Load the shaders
 	currentShader = CreateShaderProgram(shaders)
 	elapsedTimeUniform = gl.GetUniformLocation(currentShader, gl.GLString("time"))
-	loopDurationUnf := gl.GetUniformLocation(currentShader, gl.GLString("loopDuration"))
+	loopDurationUnf = gl.GetUniformLocation(currentShader, gl.GLString("loopDuration"))
 	fragLoopDurUnf := gl.GetUniformLocation(currentShader, gl.GLString("fragLoopDuration"))
 	gl.UseProgram(currentShader)
 	gl.Uniform1f(loopDurationUnf, 5.0)
@@ -96,6 +97,10 @@ func display(positionBuffer gl.Uint, vertexCount gl.Sizei) {
 	)
 
 	// Draw the vertices
+	gl.DrawArrays(gl.TRIANGLES, 0, vertexCount)
+
+	// Second triangle
+	gl.Uniform1f(elapsedTimeUniform, (gl.Float)(glfw.Time() + 1.0))
 	gl.DrawArrays(gl.TRIANGLES, 0, vertexCount)
 
 	// Disable the vertex attribute arrays, reset shader
