@@ -25,7 +25,7 @@ const (
 const (
 	VertexFile = "shaders/cube_texture.vertexshader"
 	FragmentFile = "shaders/cube_texture.fragmentshader"
-	TextureFile = "art/liske.tga"
+	TextureFile = "art/raine.tga"
 )
 
 func loadTGA(imagePath string) gl.Uint {
@@ -278,9 +278,9 @@ func main() {
 	cos_theta := (float32)(math.Cos((2*math.Pi)/360))
 	sin_theta := (float32)(math.Sin((2*math.Pi)/360))
 	var rotationMatrix = mathgl.Mat4f{
-		cos_theta, sin_theta, 0.0, 0.0,
-		-sin_theta, cos_theta, 0.0, 0.0,
-		0.0, 0.0, 1.0, 0.0,
+		cos_theta, 0.0, -sin_theta, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		sin_theta, 0.0, cos_theta, 0.0,
 		0.0, 0.0, 0.0, 1.0,
 	}
 
