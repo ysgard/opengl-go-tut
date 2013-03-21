@@ -50,9 +50,10 @@ func loadTGA(imagePath string) gl.Uint {
 	return txid
 }
 
-func xForm(data []gl.Float, vertexCount int, xform mathgl.Mat4f) {
+func xForm(data []gl.Float, xform mathgl.Mat4f) {
 	// Apply the provided transformation matrix to all vertices in the 
 	// provided data.  
+	vertexCount := (int)(len(data) / 3)
 	for i := 0; i < vertexCount * 3; i += 3 {
 		var V  = mathgl.Vec4f{ 
 			(float32)(data[i]), 
@@ -112,7 +113,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Shader program failed validation!\n")
 	}
 
-	// Time to create some graphics!  
+	// Initialize our Vertex arrays, needed for OpenGL 3+ 
 	var vertexArrayID gl.Uint = 0
 	gl.GenVertexArrays(1, &vertexArrayID)
 	gl.BindVertexArray(vertexArrayID)
@@ -126,7 +127,7 @@ func main() {
 
 	// Camera matrix
 	view := mathgl.LookAt(
-		4.0, 3.0, -3.0,
+		0.0, 0.0, -6.0,
 		0.0, 0.0, 0.0,
 		0.0, 1.0, 0.0)
 
@@ -150,7 +151,7 @@ func main() {
 	// Three consecutive floats give a single 3D vertex
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2 = 12 triangles,
 	// and 12 * 3 vertices
-	vertexBufferData := []gl.Float{ // N.B. We can't use []gl.Float, as that is a slice
+	vertexBufferData1 := []gl.Float{ 
 		-1, -1, -1,		// face 1
 		1, -1, 1,
 		-1, -1, 1,
@@ -189,6 +190,30 @@ func main() {
 		-1, 1, 1,
 	}
 
+	// Make two copies of the cube.
+	vertexBufferData2 := make([]gl.Float, len(vertexBufferData1))
+	vertexBufferData3 := make([]gl.Float, len(vertexBufferData1))
+	copy(vertexBufferData2, vertexBufferData1)
+	copy(vertexBufferData3, vertexBufferData1)
+
+	// Displace the objects to either side of the main cube, along X axis
+	var displaceXplus4 = mathgl.Mat4f{
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		3, 0, 0, 1,
+	} 
+
+	var displaceXminus4 = mathgl.Mat4f{
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		-3, 0, 0, 1,
+	}
+
+	xForm(vertexBufferData2, displaceXplus4)
+	xForm(vertexBufferData3, displaceXminus4)
+
 	// Create a random number generator to produce colors
 	//now := time.Now()
 	//rnd := rand.New(rand.NewSource(now.Unix()))
@@ -200,9 +225,9 @@ func main() {
 	//	colorBufferData[i+2] = (gl.Float)(rnd.Float32()) // green
 	//}
 
-	// Two UV coordinated for each vertex.  They were created with
-	// Blender.  You'll learn shortly how to do this yourself.
-	uvBufferData := [...]gl.Float{
+	// Two UV coordinated for each vertex.  We only need one 
+	// texture array for all three cubes.
+	uvBufferData := []gl.Float{
 		0, 0,
 		1, 1,
 		0, 1,
@@ -241,32 +266,18 @@ func main() {
 		1, 0,
 	}
 
-	// Time to draw this sucker.
+	// Create Vertex buffers
 	var vertexBuffer gl.Uint                 // id the vertex buffer
 	gl.GenBuffers(1, &vertexBuffer)          // Generate 1 buffer, grab the id
 	defer gl.DeleteBuffers(1, &vertexBuffer) // Make sure we delete this, no matter what happens
-	// The following commands will talk about our 'vertexBuffer'
-	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
-	// Give our vertices to OpenGL
-	// WARNING!  This looks EXTREMELY fragile
-	vertexBufferDataLen := unsafe.Sizeof(vertexBufferData[0]) * (uintptr)(len(vertexBufferData))
-	gl.BufferData(
-		gl.ARRAY_BUFFER,
-		gl.Sizeiptr(vertexBufferDataLen), // Already pretty bad
-		gl.Pointer(&vertexBufferData[0]),                // SWEET ZOMBIE JESUS PLEASE DON'T CRASH MY MACHINE
-		gl.STATIC_DRAW)
+
 
 	// Set up the UV buffer
 	var uvBuffer gl.Uint
 	gl.GenBuffers(1, &uvBuffer)
 	defer gl.DeleteBuffers(1, &uvBuffer)
-	gl.BindBuffer(gl.ARRAY_BUFFER, uvBuffer)
-	gl.BufferData(
-		gl.ARRAY_BUFFER,
-		gl.Sizeiptr(unsafe.Sizeof(uvBufferData)),
-		gl.Pointer(&uvBufferData),
-		gl.STATIC_DRAW)
 
+	
 	// Enable Z-buffer
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
@@ -274,19 +285,35 @@ func main() {
 	// Precalculate the radians we need, as (float32) conversions
 	// become tiresome after a while.  We want a full rotation
 	// every 6 seconds, which at 60fps works out to about 1 degree
-	// per frame, or 2*pi/360.
+	// per frame, or 2*pi/360 radians.
 	cos_theta := (float32)(math.Cos((2*math.Pi)/360))
 	sin_theta := (float32)(math.Sin((2*math.Pi)/360))
-	var rotationMatrix = mathgl.Mat4f{
+	var zRotationMatrix = mathgl.Mat4f{
 		cos_theta, sin_theta, 0.0, 0.0,
 		-sin_theta, cos_theta, 0.0, 0.0,
 		0.0, 0.0, 1.0, 0.0,
 		0.0, 0.0, 0.0, 1.0,
 	}
+	var xRotationMatrix = mathgl.Mat4f{
+		1.0, 0.0, 0.0, 0.0,
+		0.0, cos_theta, sin_theta, 0.0,
+		0.0, -sin_theta, cos_theta, 0.0,
+		0.0, 0.0, 0.0, 1.0,
+	}
+	var yRotationMatrix = mathgl.Mat4f{
+		cos_theta, 0.0, -sin_theta, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		sin_theta, 0.0, cos_theta, 0.0,
+		0.0, 0.0, 0.0, 1.0,
+	}
+
+
+	// Clamp FPS to vertical sync rate
+	glfw.SetSwapInterval(1)
+
 
 
 	// Main loop - run until it dies, or we find something better
-	glfw.SetSwapInterval(1)
 	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) &&
 		(glfw.WindowParam(glfw.Opened) == 1) {
 
@@ -296,56 +323,91 @@ func main() {
 		// Want to use our loaded shaders
 		gl.UseProgram(programID)
 
-		// Rotate the cube.  For each vertex in vertexBufferData, apply
+		// Rotate the cubes.  For each vertex in vertexBufferData, apply
 		// the rotation
-		xForm(vertexBufferData, len(vertexBufferData)/3, rotationMatrix)
-		// Buffer the new data
-		gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
-		gl.BufferData(
-			gl.ARRAY_BUFFER,
-			gl.Sizeiptr(vertexBufferDataLen),
-			gl.Pointer(&vertexBufferData[0]),
-			gl.STATIC_DRAW)
+		xForm(vertexBufferData1, yRotationMatrix)
+		xForm(vertexBufferData2, xRotationMatrix)
+		xForm(vertexBufferData3, zRotationMatrix)
+
+		// Create Mondo buffers
+		tmp := append(vertexBufferData1, vertexBufferData2...)
+		mondoVertexData := append(tmp, vertexBufferData3...)
+		tmp = append(uvBufferData, uvBufferData...)
+		mondoUVData := append(tmp, uvBufferData...)
 
 		// Perform the translation of the camera viewpoint
 		// by sending the requested operation to the vertex shader
 		//mvpm := [16]gl.Float{0.93, -0.85, -0.68, -0.68, 0.0, 1.77, -0.51, -0.51, -1.24, -0.63, -0.51, -0.51, 0.0, 0.0, 5.65, 5.83}
 		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
-		// texture in Texture Unit 0
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, texture)
-		gl.Uniform1i(textureID, 0)
 
-		// 1st attribute buffer: vertices
-		gl.EnableVertexAttribArray(0)
-		gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
-		gl.VertexAttribPointer(
-			0,        // Attribute 0. No particular reason for 0, but must match layout in shader
-			3,        // size
-			gl.FLOAT, // Type
-			gl.FALSE, // normalized?
-			0,        // stride
-			nil)      // array buffer offset
+		// Draw each of the cubes
+		render(vertexBuffer, uvBuffer, mondoVertexData, mondoUVData, textureID, texture)
 
-		// 2nd attribute buffer: UVs
-		gl.EnableVertexAttribArray(1)
-		gl.BindBuffer(gl.ARRAY_BUFFER, uvBuffer)
-		gl.VertexAttribPointer(
-			1,        // Attribute 1.  Again, no particular reason, but must match layout
-			2,        // size
-			gl.FLOAT, // Type
-			gl.FALSE, // normalized?
-			0,
-			nil) // array buffer offset
 
-		// Draw the cube!
-		gl.DrawArrays(gl.TRIANGLES, 0, 12*3) // Starting from vertex 0, 3 vertices total -> triangle
-
-		gl.DisableVertexAttribArray(0)
-		gl.DisableVertexAttribArray(1)
+		// Perform the translation of the camera viewpoint
+		// by sending the requested operation to the vertex shader
+		//mvpm := [16]gl.Float{0.93, -0.85, -0.68, -0.68, 0.0, 1.77, -0.51, -0.51, -1.24, -0.63, -0.51, -0.51, 0.0, 0.0, 5.65, 5.83}
+		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
 		glfw.SwapBuffers()
 	}
 
 }
+
+func render(vertexBuffer, uvBuffer gl.Uint, vertexData, uvData []gl.Float, textureID gl.Int, texture gl.Uint) {
+	// Draw an object with the given vertex, UV data, texture buffer and texture
+	// Buffer the new data
+	vBufferLen := unsafe.Sizeof(vertexData[0]) * (uintptr)(len(vertexData))
+	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+	gl.BufferData(
+		gl.ARRAY_BUFFER,
+		gl.Sizeiptr(vBufferLen),
+		gl.Pointer(&vertexData[0]),
+		gl.STATIC_DRAW)
+
+	// Buffer the UV data
+	uvBufferLen := unsafe.Sizeof(uvData[0]) * (uintptr)(len(uvData))
+	gl.BindBuffer(gl.ARRAY_BUFFER, uvBuffer)
+	gl.BufferData(
+		gl.ARRAY_BUFFER,
+		gl.Sizeiptr(uvBufferLen),
+		gl.Pointer(&uvData[0]),
+		gl.STATIC_DRAW)
+
+	// texture in Texture Unit 0
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, texture)
+	gl.Uniform1i(textureID, 0)
+
+	// 1st attribute buffer: vertices
+	gl.EnableVertexAttribArray(0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+	gl.VertexAttribPointer(
+		0,        // Attribute 0. No particular reason for 0, but must match layout in shader
+		3,        // size
+		gl.FLOAT, // Type
+		gl.FALSE, // normalized?
+		0,        // stride
+		nil)      // array buffer offset
+
+	// 2nd attribute buffer: UVs
+	gl.EnableVertexAttribArray(1)
+	gl.BindBuffer(gl.ARRAY_BUFFER, uvBuffer)
+	gl.VertexAttribPointer(
+		1,        // Attribute 1.  Again, no particular reason, but must match layout
+		2,        // size
+		gl.FLOAT, // Type
+		gl.FALSE, // normalized?
+		0,
+		nil) // array buffer offset
+
+	// Draw the cube!
+	gl.DrawArrays(gl.TRIANGLES, 0, gl.Sizei(vBufferLen/3)) // Starting from vertex 0, 3 vertices total -> triangle
+
+	// Unbind 
+	gl.DisableVertexAttribArray(0)
+	gl.DisableVertexAttribArray(1)
+}
+
+
