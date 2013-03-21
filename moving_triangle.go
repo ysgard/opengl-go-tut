@@ -66,7 +66,11 @@ func glInit() {
 
 // displayWindow - render an OpenGL frame, this function should be called
 // from the main loop
-func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei) {
+func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei, positionData []gl.Float) {
+	
+	fXOffset, fYOffset := computePositionOffsets()
+	adjustVertexData(fXOffset, fYOffset, positionData, positionBuffer)
+
 	// Set the background
 	gl.ClearColor(bgRed, bgGreen, bgBlue, bgAlpha)
 	gl.Clear(gl.COLOR_BUFFER_BIT)
@@ -133,30 +137,36 @@ func initializeVertexBuffer(vertices []gl.Float) (gl.Uint, gl.Sizei) {
 	return buf, (gl.Sizei)(bufferLen)
 }
 
-func computePositionOffsets() (fXOffset, fYOffset float) {
+func computePositionOffsets() (fXOffset, fYOffset float64) {
 	// Compute offsets for a rotating point
 	fLoopDuration := 5.0
 	fScale := math.Pi * 2.0 / fLoopDuration;
-	fElapsedTime := glfw.Time() / 1000.0
-	fCurrTimeThroughLoop = math.Mod(fElapsedTime, fLoopDuration)
+	fElapsedTime := glfw.Time()
+	fCurrTimeThroughLoop := math.Mod(fElapsedTime, fLoopDuration)
 
 	fXOffset = math.Cos(fCurrTimeThroughLoop * fScale) * 0.5
 	fYOffset = math.Sin(fCurrTimeThroughLoop * fScale) * 0.5
+	return
 }
 
 
-void adjustVertexData(fXOffset, fYOffset float, vertexData []gl.Float, positionBuffer gl.Uint) {
+func adjustVertexData(fXOffset, fYOffset float64, vertexData []gl.Float, positionBuffer gl.Uint) {
 	newData := make([]gl.Float, len(vertexData))
 	copy(newData, vertexData)
 
 	for i := 0; i < len(vertexData); i += 4 {
-		newData[i] += fXOffset
-		newData[i+1] += fYOffset
+		newData[i] += (gl.Float)(fXOffset)
+		newData[i+1] += (gl.Float)(fYOffset)
 	}
 
+	bufferLen := unsafe.Sizeof(vertexData[0]) * (uintptr)(len(vertexData))
 	gl.BindBuffer(gl.ARRAY_BUFFER, positionBuffer)
 	gl.BufferSubData(
-		)
+		gl.ARRAY_BUFFER,
+		0,
+		gl.Sizeiptr(bufferLen),
+		gl.Pointer(&newData[0]))
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 }
 
@@ -209,7 +219,7 @@ func main() {
 
 		vertexBuffer, vertexCount := initializeVertexBuffer(vertexPositions)
 		vertexColors, _ := initializeVertexBuffer(vertexColors)
-		display(vertexBuffer, vertexColors, vertexCount)
+		display(vertexBuffer, vertexColors, vertexCount, vertexPositions)
 		gl.DeleteBuffers(1, &vertexBuffer)
 		gl.DeleteBuffers(1, &vertexColors)
 	}
