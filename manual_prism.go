@@ -225,7 +225,7 @@ func display() {
 	gl.UseProgram(currentShader)
 	// Pass a vector of two floats to the shader using
 	// the offsetUniform handle
-	gl.Uniform2f(offsetUniform, 0.5, 0.25)
+	gl.Uniform2f(offsetUniform, 0.5, 0.5)
 
 	// Append the 
 	offset := (len(vertexData) / 2) * 4
