@@ -93,10 +93,10 @@ func CreateShaderProgram(shaderFiles []string) gl.Uint {
 	for _, shader := range shaderFiles {
 		sid = 0
 		switch extension := filepath.Ext(shader); extension {
-		case ".vertexshader":
+		case ".vertexshader", ".vert":
 			sid = CreateShader(gl.VERTEX_SHADER, shader)
 
-		case ".fragmentshader":
+		case ".fragmentshader", ".frag":
 			sid = CreateShader(gl.FRAGMENT_SHADER, shader)
 
 		default:
