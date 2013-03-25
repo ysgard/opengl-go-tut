@@ -24,6 +24,12 @@ var currentShader gl.Uint
 var offsetUniform gl.Int
 var perspectiveMatrixUnif gl.Int
 
+// Viewport matrix & constants
+var theMatrix []gl.Float
+var fFrustumScale = gl.Float(1.0)
+var fzNear = gl.Float(0.5)
+var fzFar = gl.Float(3.0)
+
 
 // Shader ilenames
 var shaders = []string{
@@ -170,10 +176,7 @@ func glInit() {
 	gl.UseProgram(currentShader)
 
 	// Initialize the uniforms
-	var fFrustumScale = gl.Float(1.0)
-	var fzNear = gl.Float(0.5)
-	var fzFar = gl.Float(3.0)
-	theMatrix := make([]gl.Float, 16)
+	theMatrix = make([]gl.Float, 16)
 	theMatrix[0] = fFrustumScale
 	theMatrix[5] = fFrustumScale
 	theMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
@@ -262,6 +265,12 @@ func display() {
 // is given in pixels.  This is an opportunity to call glViewport
 // or glScissor to keep up with the change in size.
 func reshape(w, h int) {
+	theMatrix[0] = fFrustumScale / ((gl.Float)(w) / (gl.Float)(h))
+	theMatrix[5] = fFrustumScale
+
+	gl.UseProgram(currentShader)
+	gl.UniformMatrix4fv(perspectiveMatrixUnif, 1, gl.FALSE, &theMatrix[0])
+	gl.UseProgram(0)
 	gl.Viewport(0, 0, (gl.Sizei)(w), (gl.Sizei)(h))
 }
 
