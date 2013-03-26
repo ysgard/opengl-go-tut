@@ -229,6 +229,9 @@ func programInit() {
 
 	// Set the resize handler
 	glfw.SetWindowSizeCallback(reshape)
+
+	// Set the mousewheel to 'zoom'
+	glfw.SetMouseWheelCallback(mousewhee)
 }
 
 // display - render an OpenGL frame, this function should be
@@ -266,12 +269,19 @@ func display() {
 // or glScissor to keep up with the change in size.
 func reshape(w, h int) {
 	theMatrix[0] = fFrustumScale / ((gl.Float)(w) / (gl.Float)(h))
-	theMatrix[5] = fFrustumScale
-
 	gl.UseProgram(currentShader)
 	gl.UniformMatrix4fv(perspectiveMatrixUnif, 1, gl.FALSE, &theMatrix[0])
 	gl.UseProgram(0)
 	gl.Viewport(0, 0, (gl.Sizei)(w), (gl.Sizei)(h))
+}
+
+func recalc() {
+	w, h := glfw.WindowSize()
+	theMatrix[5] = fFrustumScale
+	theMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
+	theMatrix[14] = (2 * fzFar * fzNear) / (fzNear - fzFar)
+	theMatrix[11] = -1.0
+	reshape(w, h)
 }
 
 func shutdown() {
@@ -289,10 +299,40 @@ func keyboard(key, state int) {
 		switch key {
 		case glfw.KeyEsc:
 			shutdown()
+	
+		case glfw.KeyUp:
+			fFrustumScale += 0.1
+			recalc()
+		
+		case glfw.KeyDown:
+			fFrustumScale -= 0.1
+			recalc()
+		case glfw.KeyLeft:
+			fzNear -= 0.1
+			recalc()
+		case glfw.KeyRight:
+			fzNear += 0.1
+			recalc()
+		
+		case glfw.KeyLshift:
+			fzFar -= 0.1
+			recalc()
+		case glfw.KeyRshift:
+			fzFar += 0.1
+			recalc()
 		}
 
 	}
 	return
+}
+
+func mousewhee(pos int) {
+	if ( pos < 0) {
+		fFrustumScale -= 0.1
+	} else {
+		fFrustumScale += 0.1
+	}
+	recalc()
 }
 
 // Main loop
