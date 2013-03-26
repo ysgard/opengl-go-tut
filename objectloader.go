@@ -203,7 +203,7 @@ func loadOBJ(filePath string) ([]mathgl.Vec3f, []mathgl.Vec2f, []mathgl.Vec3f) {
 
 }
 
-// Driver, remove once loader has been tested.
+//Driver, remove once loader has been tested.
 // func main() {
 // 	dumpOBJ("art/cylinder.obj")
 // }

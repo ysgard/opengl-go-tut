@@ -32,6 +32,9 @@ var shaders = []string{
 	"shaders/triangle.fragmentshader",
 }
 
+// Object to load
+var objFile = string("art/cylinder.obj")
+
 func glfwInitWindow() {
 	// Initialize glfw
 	glfw.Init()
@@ -157,12 +160,7 @@ func main() {
 	})
 
 	// Data prep.  Make it a slice
-	vertexPositions := []gl.Float{
-		// vertex data in XYZW format
-		0.0, 0.5, 0.0, 1.0,
-		0.5, -0.366, 0.0, 1.0,
-		-0.5, -0.366, 0.0, 1.0,
-	}
+	vertexPositions, _, _ := loadOBJ(objFile)
 
 	vertexColors := []gl.Float{
 		// Color data in RGBA format
