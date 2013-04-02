@@ -4,15 +4,15 @@ package main
 
 import (
 	"fmt"
-	"github.com/Jragonmiris/mathgl"
+	gl "github.com/chsc/gogl/gl33"
 )
 
 
 
 
 
-func Mat4fDebug(m mathgl.Mat4f) {
-	fmt.Printf("\t-------------------------Mat4f---------------------------\n")
+func debugMat(m []gl.Float, s string) {
+	fmt.Printf("\t-----------------------%s-------------------------\n", s)
 	for i := 0; i < 4; i++ {
 		fmt.Printf("\t%f\t%f\t%f\t%f\n", m[i*4], m[i*4+1], m[i*4+2], m[i*4+3])
 	}

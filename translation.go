@@ -4,25 +4,22 @@ import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
-	"github.com/Jragonmiris/mathgl"
 	"os"
 	"runtime"
 	"unsafe"
 	"math"
+	"time"
 )
 
 const (
 	Width  = 500
 	Height = 500
-	Title  = "Perspective Prism"
+	Title  = "Stupid Fucking Nonfunctional Translator Demo"
 )
 
 // 
 const degToRad = math.Pi * 2.0 / 360
-var fFrustumScale = CalcFrustumScale(45.0)
-
-const fLoopDuration = 3.0
-const fScale = math.Pi * 2.0 / fLoopDuration
+var fFrustumScale gl.Float
 
 // Various GL
 var currentShader gl.Uint
@@ -40,7 +37,7 @@ var modelToCameraMatrixUnif gl.Int
 var cameraToClipMatrixUnif gl.Int
 
 // camera?
-var cameraToClipMatrix mathgl.Mat4f
+var cameraToClipMatrix = make([]gl.Float, 16)
 var fzNear = gl.Float(1.0)
 var fzFar = gl.Float(45.0)
 
@@ -52,22 +49,15 @@ type Color struct {
 	B gl.Float
 	W gl.Float
 }
-var RIGHT_EXTENT = gl.Float(0.8)
-var LEFT_EXTENT = -RIGHT_EXTENT
-var TOP_EXTENT = gl.Float(0.2)
-var MIDDLE_EXTENT = gl.Float(0.0)
-var BOTTOM_EXTENT = -TOP_EXTENT
-var FRONT_EXTENT = gl.Float(-1.25)
-var REAR_EXTENT = gl.Float(-1.75)
 
-var GREEN_COLOR = Color{0.75, 0.75, 1.0, 1.0}
-var BLUE_COLOR = Color{0.0, 0.5, 0.0, 1.0}
+var GREEN_COLOR = Color{0.0, 1.0, 0.0, 1.0}
+var BLUE_COLOR = Color{0.0, 0.0, 1.0, 1.0}
 var RED_COLOR = Color{1.0, 0.0, 0.0, 1.0}
-var GREY_COLOR = Color{0.8, 0.8, 0.0, 1.0}
+var GREY_COLOR = Color{0.8, 0.8, 0.8, 1.0}
 var BROWN_COLOR = Color{0.5, 0.5, 0.0, 1.0}
 
 // Vertex data
-var numberOfVertices = int(8)
+var numberOfVertices = 8
 var vertexData = []gl.Float{
 	+1.0, +1.0, +1.0,
 	-1.0, -1.0, +1.0,
@@ -91,7 +81,7 @@ var vertexData = []gl.Float{
 }
 
 // Index data
-var indexData = []gl.Short{
+var indexData = []gl.Ushort{
 	0, 1, 2,
 	1, 0, 3,
 	2, 3, 0,
@@ -104,60 +94,82 @@ var indexData = []gl.Short{
 }
 
 type Instance struct {
-	calcOffset func(gl.Float) (mathgl.Vec3f)
+	name string
+	calcOffset func(gl.Float) ([]gl.Float)
 }
 
-func (i Instance) constructMatrix(fElapsedTime gl.Float) mathgl.Mat4f {
-	theMat := mathgl.Ident4f()
+func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
+	theMat := make([]gl.Float, 16)
+	theMat[0] = 1.0
+	theMat[5] = 1.0
+	theMat[10] = 1.0
+	theMat[15] = 1.0
+	// theMat := []gl.Float{
+	// 	1.0, 0, 0, 0,
+	// 	0, 1.0, 0, 0,
+	// 	0, 0, 1.0, 0,
+	// 	0, 0, 0, 1.0,
+	// }
 	co := i.calcOffset(fElapsedTime)
-	theMat[3] = co[0]
-	theMat[7] = co[1]
-	theMat[11] = co[2]
+	theMat[12] = co[0]
+	theMat[13] = co[1]
+	theMat[14] = co[2]
 	theMat[15] = 1.0
 	return theMat
 }
 
 
 var instanceList = []Instance{
-	{StationaryOffset},
-	{OvalOffset},
-	{BottomCircleOffset},
+	{"StationaryOffset", StationaryOffset},
+	{"OvalOffset", OvalOffset},
+	{"BottomCircleOffset", BottomCircleOffset},
 }
 
 
 func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
 	fFovRad := fFovDeg * degToRad
-	return 1.0 / (gl.Float)(math.Tan((float64)(fFovRad / 2.0)))
+	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad / 2.0)))
 }
 
 // arg: fElapsedTime gl.Float
-func StationaryOffset(_ gl.Float) mathgl.Vec3f {
-	return mathgl.Vec3f{0.0, 0.0, -20.0}
+func StationaryOffset(_ gl.Float) []gl.Float {
+	fmt.Fprintf(os.Stderr, ">>> StationaryOffset called\n")
+	return []gl.Float{0.0, 0.0, -20.0}
 }
 
-func OvalOffset(fElapsedTime gl.Float) mathgl.Vec3f {
+func OvalOffset(fElapsedTime gl.Float) []gl.Float {
+
+	fmt.Fprintf(os.Stderr, ">>> OvalOffset called\n")
+	fLoopDuration := 3.0
+	fScale := math.Pi * 2.0 / fLoopDuration
 
 	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)
-	return mathgl.Vec3f{
-		(float32)(math.Cos(fCurrTimeThroughLoop * fScale) * 4.0),
-		(float32)(math.Sin(fCurrTimeThroughLoop * fScale) * 6.0),
+	return []gl.Float{
+		(gl.Float)(math.Cos(fCurrTimeThroughLoop * fScale) * 4.0),
+		(gl.Float)(math.Sin(fCurrTimeThroughLoop * fScale) * 6.0),
 		-20.0}
 }
 
-func BottomCircleOffset(fElapsedTime gl.Float) mathgl.Vec3f {
+func BottomCircleOffset(fElapsedTime gl.Float) []gl.Float {
+
+	fmt.Fprintf(os.Stderr, ">>> BottomCircleOffset called\n")
+	fLoopDuration := 12.0
+	fScale := math.Pi * 2.0 / fLoopDuration
 
 	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)	
-	return mathgl.Vec3f{
-		(float32)(math.Cos(fCurrTimeThroughLoop * fScale) * 5.0),
+	return []gl.Float{
+		(gl.Float)(math.Cos(fCurrTimeThroughLoop * fScale) * 5.0),
 		-3.5,
-		(float32)(math.Sin(fCurrTimeThroughLoop * fScale) * 5.0 - 20.0)}
+		(gl.Float)(math.Sin(fCurrTimeThroughLoop * fScale) * 5.0 - 20.0)}
 }
 
-func InitializeVertexBuffer() {
+func InitializeVertexBuffers() {
 	gl.GenBuffers(1, &vertexBufferObject)
-	
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
-	bufferLen := unsafe.Sizeof(vertexData[0]) * (uintptr)(len(vertexData))
+	if gl.IsBuffer(vertexBufferObject) == gl.FALSE {
+		fmt.Fprintf(os.Stderr, "Cannot initialize vertexBufferObject!\n")
+	}
+	bufferLen := unsafe.Sizeof(gl.Float(0)) * (uintptr)(len(vertexData))
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
 		gl.Sizeiptr(bufferLen),
@@ -166,11 +178,13 @@ func InitializeVertexBuffer() {
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	gl.GenBuffers(1, &indexBufferObject)
-
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferObject)
-	bufferLen = unsafe.Sizeof(indexData[0]) * (uintptr)(len(indexData))
+	if gl.IsBuffer(indexBufferObject) == gl.FALSE {
+		fmt.Fprintf(os.Stderr, "Cannot initialize indexBufferObject!\n")
+	}
+	bufferLen = unsafe.Sizeof(gl.Short(0)) * (uintptr)(len(indexData))
 	gl.BufferData(
-		gl.ARRAY_BUFFER,
+		gl.ELEMENT_ARRAY_BUFFER,
 		gl.Sizeiptr(bufferLen),
 		gl.Pointer(&indexData[0]),
 		gl.STATIC_DRAW)
@@ -203,39 +217,76 @@ func glfwInitWindow() {
 }
 
 
+func ToColumnMajor(m []gl.Float) []gl.Float {
+	cm := make([]gl.Float, 16)
+	cm[0] = m[0]
+	cm[1] = m[4]
+	cm[2] = m[8]
+	cm[3] = m[12]
+	cm[4] = m[1]
+	cm[5] = m[5]
+	cm[6] = m[9]
+	cm[7] = m[13]
+	cm[8] = m[2]
+	cm[9] = m[6]
+	cm[10] = m[10]
+	cm[11] = m[14]
+	cm[12] = m[3]
+	cm[13] = m[7]
+	cm[14] = m[11]
+	cm[15] = m[15]
+	return cm
+}
+
 func InitializeProgram() {
 	// Create shaders and bind their variables
 	currentShader = CreateShaderProgram(shaders)
 	modelToCameraMatrixUnif = gl.GetUniformLocation(currentShader, gl.GLString("modelToCameraMatrix"))
+	if modelToCameraMatrixUnif == -1 {
+		fmt.Fprintf(os.Stderr, "Invalid value error from glGetUniformLocation: modelToCameraMatrix\n")
+	}
 	cameraToClipMatrixUnif = gl.GetUniformLocation(currentShader, gl.GLString("cameraToClipMatrix"))
+	if cameraToClipMatrixUnif == -1 {
+		fmt.Fprintf(os.Stderr, "Invalid value error from glGetUniformLocation: cameraToClipMatrix\n")
+	}
 
-	cameraToClipMatrix[0] = (float32)(fFrustumScale)
-	cameraToClipMatrix[5] = (float32)(fFrustumScale)
-	cameraToClipMatrix[10] = (float32)((fzFar + fzNear) / (fzNear - fzFar))
-	cameraToClipMatrix[14] = -1.0
-	cameraToClipMatrix[11] = (float32)((2 * fzFar * fzNear) / (fzNear - fzFar))
+
+	cameraToClipMatrix[0] = fFrustumScale
+	cameraToClipMatrix[5] = fFrustumScale
+	cameraToClipMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
+	cameraToClipMatrix[11] = -1.0
+	cameraToClipMatrix[14] = (2 * fzFar * fzNear) / (fzNear - fzFar)
+	debugMat(cameraToClipMatrix, "Camera Matrix")
+
 
 	gl.UseProgram(currentShader)
-	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, (*gl.Float)(&cameraToClipMatrix[0]))
+	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
 	gl.UseProgram(0)
 }
 
+
 func Initialize() {
+
+	fFrustumScale = CalcFrustumScale(45.0)
 
 	glfwInitWindow()
 	gl.Init()
+
 	InitializeProgram()
-	InitializeVertexBuffer()
+	InitializeVertexBuffers()
 
 	gl.GenVertexArrays(1, &vao)
+	if gl.IsVertexArray(vao) == gl.FALSE {
+		fmt.Fprintf(os.Stderr, "Cannot initialize vao!")
+	}
 	gl.BindVertexArray(vao)
 
-	colorDataOffset := unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * numberOfVertices)
+	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * numberOfVertices))
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.EnableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, 0, nil)
-	gl.VertexAttribPointer(1, 4, gl.FLOAT, gl.FALSE, 0, gl.Offset(nil, colorDataOffset))
+	gl.VertexAttribPointer(1, 4, gl.FLOAT, gl.FALSE, 0, colorDataOffset)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferObject)
 
 	gl.BindVertexArray(0)
@@ -260,14 +311,16 @@ func display() {
 
 	gl.BindVertexArray(vao)
 
-	fElapsedTime := glfw.Time() / (1000 * 1000)
+	fElapsedTime := glfw.Time()
 	for i := 0; i < len(instanceList); i++ {
 		xform := instanceList[i].constructMatrix((gl.Float)(fElapsedTime))
-		Mat4fDebug(xform)
-		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &(xform[0]))
+		//xformT := ToColumnMajor(xform)
+		debugMat(xform, instanceList[i].name)
+		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0])
+		fmt.Fprintf(os.Stderr, "Drawing %d elements\n", gl.Sizei(len(indexData)))
 		gl.DrawElements(
 			gl.TRIANGLES, 
-			gl.Sizei(len(indexData)), 
+			gl.Sizei(len(indexData)),
 			gl.UNSIGNED_SHORT, 
 			nil)
 	}
@@ -279,11 +332,11 @@ func display() {
 }
 
 func reshape(w, h int) {
-	cameraToClipMatrix[0] = (float32)(fFrustumScale) * (float32)(h) / (float32)(w)
-	cameraToClipMatrix[5] = (float32)(fFrustumScale)
+	cameraToClipMatrix[0] = fFrustumScale * (gl.Float)(h) / (gl.Float)(w)
+	cameraToClipMatrix[5] = fFrustumScale
 
 	gl.UseProgram(currentShader)
-	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, (*gl.Float)(&cameraToClipMatrix[0]))
+	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
 	gl.UseProgram(0)
 
 	gl.Viewport(0, 0, (gl.Sizei)(w), (gl.Sizei)(h))
@@ -332,7 +385,8 @@ func main() {
 
 	// Main loop.  Run until it dies, or we find someone better.
 	for glfw.WindowParam(glfw.Opened) == 1 {
-
+		fmt.Fprintf(os.Stdout, "*** Frame: %f ***\n", glfw.Time())
+		time.Sleep(time.Millisecond)
 		display()
 	}
 
