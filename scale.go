@@ -14,7 +14,7 @@ import (
 const (
 	Width  = 500
 	Height = 500
-	Title  = "Stupid Fucking Nonfunctional Translator Demo"
+	Title  = "Scaling Demo"
 )
 
 // 
@@ -95,8 +95,8 @@ var indexData = []gl.Ushort{
 
 type Instance struct {
 	name string
-	[3]gl.Float offset
-	calcOffset func(gl.Float) ([]gl.Float)
+	calcScale func(gl.Float) ([3]gl.Float)
+	offset [3]gl.Float
 }
 
 func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
@@ -116,25 +116,25 @@ func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
 	theMat[0] = sc[0]
 	theMat[5] = sc[1]
 	theMat[10] = sc[2]
-	theMat[12] = offset[0]
-	theMat[13] = offset[1]
-	theMat[14] = offset[2]
+	theMat[12] = i.offset[0]
+	theMat[13] = i.offset[1]
+	theMat[14] = i.offset[2]
 	theMat[15] = 1.0
 	return theMat
 }
 
 
 var instanceList = []Instance{
-	{"NullScale", NullScale, {0.0, 0.0, -45.0}},
-	{"StaticUniformScale", StaticUniformScale, {-10.0, -10.0, -45.0}},
-	{"StaticNonUniformScale", StaticNonUniformScale, {-10.0, 10.0, -45.0}},
-	{"DynamicUniformScale", DynamicUniformScale, {10.0, 10.0, -45.0}},
-	{"DynamicNonUniformScale", DynamicNonUniformScale, {10.0, -10.0, -45.0}},
+	{"NullScale", NullScale, [3]gl.Float{0.0, 0.0, -45.0}},
+	{"StaticUniformScale", StaticUniformScale, [3]gl.Float{-10.0, -10.0, -45.0}},
+	{"StaticNonUniformScale", StaticNonUniformScale, [3]gl.Float{-10.0, 10.0, -45.0}},
+	{"DynamicUniformScale", DynamicUniformScale, [3]gl.Float{10.0, 10.0, -45.0}},
+	{"DynamicNonUniformScale", DynamicNonUniformScale, [3]gl.Float{10.0, -10.0, -45.0}},
 }
 
 
-func CalcLerpFactor(fElapsedTime, fLoopDuration gl.Float) {
-	fValue := math.Mod(fElapsedTime, fLoopDuration) / fLoopDuration
+func CalcLerpFactor(fElapsedTime, fLoopDuration gl.Float) gl.Float {
+	fValue := (gl.Float)(math.Mod((float64)(fElapsedTime), (float64)(fLoopDuration))) / fLoopDuration
 	if fValue > 0.5 {
 		fValue = 1.0 - fValue
 	}
@@ -145,25 +145,31 @@ func Lerp(a, b, c gl.Float) gl.Float {
 	return a + (b-a)*c
 }
 
-func NullScale(fElapsedTime gl.Float) []gl.Float {
-	return []gl.Float{1.0, 1.0, 1.0}
+func NullScale(fElapsedTime gl.Float) [3]gl.Float {
+	return [3]gl.Float{1.0, 1.0, 1.0}
 }
 
-func StaticUniformScale(fElapsedTime gl.Float) []gl.Float {
-	return []gl.Float{4.0, 4.0, 4.0}
+func StaticUniformScale(fElapsedTime gl.Float) [3]gl.Float {
+	return [3]gl.Float{4.0, 4.0, 4.0}
 }
 
-func StaticNonUniformScale(fElapsedTime gl.Float) []gl.Float {
-	return []gl.Float{0.5, 1.0, 10.0}
+func StaticNonUniformScale(fElapsedTime gl.Float) [3]gl.Float {
+	return [3]gl.Float{0.5, 1.0, 10.0}
 }
 
-func DynamicUniformScale(fElapsedTime gl.Float) []gl.Float {
-	fLoopDuration := 3.0
-	mix := 
-	return []gl.Float{}
-
+func DynamicUniformScale(fElapsedTime gl.Float) [3]gl.Float {
+	fLoopDuration := gl.Float(3.0)
+	mix := 1.0 + 3.0 * CalcLerpFactor(fElapsedTime, fLoopDuration)
+	return [3]gl.Float{mix, mix, mix}
 }
 
+func DynamicNonUniformScale(fElapsedTime gl.Float) [3]gl.Float {
+	fXLoopDuration := gl.Float(3.0)
+	fZLoopDuration := gl.Float(5.0)
+	mixx := 1.0 + 4.0 * CalcLerpFactor(fElapsedTime, fXLoopDuration)
+	mixz := 1.0 + 9.0 * CalcLerpFactor(fElapsedTime, fZLoopDuration)
+	return [3]gl.Float{mixx, 1.0, mixz}
+}
 
 func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
 	fFovRad := fFovDeg * degToRad
