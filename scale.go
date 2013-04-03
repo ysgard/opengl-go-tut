@@ -95,6 +95,7 @@ var indexData = []gl.Ushort{
 
 type Instance struct {
 	name string
+	[3]gl.Float offset
 	calcOffset func(gl.Float) ([]gl.Float)
 }
 
@@ -110,19 +111,57 @@ func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
 	// 	0, 0, 1.0, 0,
 	// 	0, 0, 0, 1.0,
 	// }
-	co := i.calcOffset(fElapsedTime)
-	theMat[12] = co[0]
-	theMat[13] = co[1]
-	theMat[14] = co[2]
+	//co := i.calcOffset(fElapsedTime)
+	sc := i.calcScale(fElapsedTime)
+	theMat[0] = sc[0]
+	theMat[5] = sc[1]
+	theMat[10] = sc[2]
+	theMat[12] = offset[0]
+	theMat[13] = offset[1]
+	theMat[14] = offset[2]
 	theMat[15] = 1.0
 	return theMat
 }
 
 
 var instanceList = []Instance{
-	{"StationaryOffset", StationaryOffset},
-	{"OvalOffset", OvalOffset},
-	{"BottomCircleOffset", BottomCircleOffset},
+	{"NullScale", NullScale, {0.0, 0.0, -45.0}},
+	{"StaticUniformScale", StaticUniformScale, {-10.0, -10.0, -45.0}},
+	{"StaticNonUniformScale", StaticNonUniformScale, {-10.0, 10.0, -45.0}},
+	{"DynamicUniformScale", DynamicUniformScale, {10.0, 10.0, -45.0}},
+	{"DynamicNonUniformScale", DynamicNonUniformScale, {10.0, -10.0, -45.0}},
+}
+
+
+func CalcLerpFactor(fElapsedTime, fLoopDuration gl.Float) {
+	fValue := math.Mod(fElapsedTime, fLoopDuration) / fLoopDuration
+	if fValue > 0.5 {
+		fValue = 1.0 - fValue
+	}
+	return fValue * 2.0
+}
+
+func Lerp(a, b, c gl.Float) gl.Float {
+	return a + (b-a)*c
+}
+
+func NullScale(fElapsedTime gl.Float) []gl.Float {
+	return []gl.Float{1.0, 1.0, 1.0}
+}
+
+func StaticUniformScale(fElapsedTime gl.Float) []gl.Float {
+	return []gl.Float{4.0, 4.0, 4.0}
+}
+
+func StaticNonUniformScale(fElapsedTime gl.Float) []gl.Float {
+	return []gl.Float{0.5, 1.0, 10.0}
+}
+
+func DynamicUniformScale(fElapsedTime gl.Float) []gl.Float {
+	fLoopDuration := 3.0
+	mix := 
+	return []gl.Float{}
+
 }
 
 
@@ -131,37 +170,6 @@ func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
 	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad / 2.0)))
 }
 
-// arg: fElapsedTime gl.Float
-func StationaryOffset(_ gl.Float) []gl.Float {
-	fmt.Fprintf(os.Stderr, ">>> StationaryOffset called\n")
-	return []gl.Float{0.0, 0.0, -20.0}
-}
-
-func OvalOffset(fElapsedTime gl.Float) []gl.Float {
-
-	fmt.Fprintf(os.Stderr, ">>> OvalOffset called\n")
-	fLoopDuration := 3.0
-	fScale := math.Pi * 2.0 / fLoopDuration
-
-	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)
-	return []gl.Float{
-		(gl.Float)(math.Cos(fCurrTimeThroughLoop * fScale) * 4.0),
-		(gl.Float)(math.Sin(fCurrTimeThroughLoop * fScale) * 6.0),
-		-20.0}
-}
-
-func BottomCircleOffset(fElapsedTime gl.Float) []gl.Float {
-
-	fmt.Fprintf(os.Stderr, ">>> BottomCircleOffset called\n")
-	fLoopDuration := 12.0
-	fScale := math.Pi * 2.0 / fLoopDuration
-
-	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)	
-	return []gl.Float{
-		(gl.Float)(math.Cos(fCurrTimeThroughLoop * fScale) * 5.0),
-		-3.5,
-		(gl.Float)(math.Sin(fCurrTimeThroughLoop * fScale) * 5.0 - 20.0)}
-}
 
 func InitializeVertexBuffers() {
 	gl.GenBuffers(1, &vertexBufferObject)
@@ -216,27 +224,6 @@ func glfwInitWindow() {
 
 }
 
-
-func ToColumnMajor(m []gl.Float) []gl.Float {
-	cm := make([]gl.Float, 16)
-	cm[0] = m[0]
-	cm[1] = m[4]
-	cm[2] = m[8]
-	cm[3] = m[12]
-	cm[4] = m[1]
-	cm[5] = m[5]
-	cm[6] = m[9]
-	cm[7] = m[13]
-	cm[8] = m[2]
-	cm[9] = m[6]
-	cm[10] = m[10]
-	cm[11] = m[14]
-	cm[12] = m[3]
-	cm[13] = m[7]
-	cm[14] = m[11]
-	cm[15] = m[15]
-	return cm
-}
 
 func InitializeProgram() {
 	// Create shaders and bind their variables
