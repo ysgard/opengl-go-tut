@@ -249,7 +249,7 @@ func InitializeProgram() {
 	cameraToClipMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
 	cameraToClipMatrix[11] = -1.0
 	cameraToClipMatrix[14] = (2 * fzFar * fzNear) / (fzNear - fzFar)
-	debugMat(cameraToClipMatrix, "Camera Matrix")
+	DebugMat(cameraToClipMatrix, "Camera Matrix")
 
 
 	gl.UseProgram(currentShader)
@@ -308,7 +308,7 @@ func display() {
 	for i := 0; i < len(instanceList); i++ {
 		xform := instanceList[i].constructMatrix((gl.Float)(fElapsedTime))
 		//xformT := ToColumnMajor(xform)
-		debugMat(xform, instanceList[i].name)
+		DebugMat(xform, instanceList[i].name)
 		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0])
 		fmt.Fprintf(os.Stderr, "Drawing %d elements\n", gl.Sizei(len(indexData)))
 		gl.DrawElements(

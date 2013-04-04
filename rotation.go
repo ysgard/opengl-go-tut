@@ -38,7 +38,7 @@ var modelToCameraMatrixUnif gl.Int
 var cameraToClipMatrixUnif gl.Int
 
 // camera?
-var cameraToClipMatrix = make([]gl.Float, 16)
+var cameraToClipMatrix = IdentMat4()
 var fzNear = gl.Float(1.0)
 var fzFar = gl.Float(45.0)
 
@@ -96,25 +96,23 @@ var indexData = []gl.Ushort{
 
 type Instance struct {
 	name string
-	RotateFunc func(gl.Float) ([]gl.Float)
-	offset [3]gl.Float
+	RotateFunc func(gl.Float) (*Mat4)
+	offset Vec4
 }
 
-func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
+func (i Instance) constructMatrix(fElapsedTime gl.Float) *Mat4 {
 	theMat := i.RotateFunc(fElapsedTime)
-	theMat[12] = i.offset[0]
-	theMat[13] = i.offset[1]
-	theMat[14] = i.offset[2]
+	theMat[3] = i.offset
 	return theMat
 }
 
 
 var instanceList = []Instance{
-	{"NullRotation", NullRotation, [3]gl.Float{0.0, 0.0, -25.0}},
-	{"RotateX", RotateX, [3]gl.Float{-5.0, -5.0, -25.0}},
-	{"RotateY", RotateY, [3]gl.Float{-5.0, 5.0, -25.0}},
-	{"RotateZ", RotateZ, [3]gl.Float{5.0, 5.0, -25.0}},
-	{"RotateAxis", RotateAxis, [3]gl.Float{5.0, -5.0, -25.0}},
+	{"NullRotation", NullRotation, Vec4{0.0, 0.0, -25.0, 1.0}},
+	{"RotateX", RotateX, Vec4{-5.0, -5.0, -25.0, 1.0}},
+	{"RotateY", RotateY, Vec4{-5.0, 5.0, -25.0, 1.0}},
+	{"RotateZ", RotateZ, Vec4{5.0, 5.0, -25.0, 1.0}},
+	{"RotateAxis", RotateAxis, Vec4{5.0, -5.0, -25.0, 1.0}},
 }
 
 
@@ -134,47 +132,47 @@ func ComputeAngleRad(fElapsedTime, fLoopDuration gl.Float) gl.Float {
 	return fCurrTimeThroughLoop * fScale
 }
 
-func NullRotation(_ gl.Float) []gl.Float {
-	return Ident4()
+func NullRotation(_ gl.Float) *Mat4 {
+	return IdentMat4()
 }
 
-func RotateX(fElapsedTime gl.Float) []gl.Float {
+func RotateX(fElapsedTime gl.Float) *Mat4 {
 	fAngRad := ComputeAngleRad(fElapsedTime, 3.0)
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
-	theMat := Ident4()
-	theMat[5] = fCos
-	theMat[9] = -fSin
-	theMat[6] = fSin
-	theMat[10] = fCos
+	theMat := IdentMat4()
+	theMat[1].y = fCos 
+	theMat[2].y = -fSin
+	theMat[1].z = fSin 
+	theMat[2].z = fCos
 	return theMat
 }
 
-func RotateY(fElapsedTime gl.Float) []gl.Float {
+func RotateY(fElapsedTime gl.Float) *Mat4 {
 	fAngRad := ComputeAngleRad(fElapsedTime, 2.0)
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
-	theMat := Ident4()
-	theMat[0] = fCos
-	theMat[8] = fSin
-	theMat[2] = -fSin
-	theMat[10] = fCos
+	theMat := IdentMat4()
+	theMat[0].x = fCos 
+	theMat[2].x = fSin
+	theMat[0].z = -fSin 
+	theMat[2].z = fCos
 	return theMat
 }
 
-func RotateZ(fElapsedTime gl.Float) []gl.Float {
+func RotateZ(fElapsedTime gl.Float) *Mat4 {
 	fAngRad := ComputeAngleRad(fElapsedTime, 2.0)
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
-	theMat := Ident4()
-	theMat[0] = fCos
-	theMat[4] = -fSin
-	theMat[1] = fSin
-	theMat[5] = fCos
+	theMat := IdentMat4()
+	theMat[0].x = fCos
+	theMat[1].x = -fSin
+	theMat[0].y = fSin 
+	theMat[1].y = fCos
 	return theMat
 }
 
-func RotateAxis(fElapsedTime gl.Float) []gl.Float {
+func RotateAxis(fElapsedTime gl.Float) *Mat4 {
 	fAngRad := ComputeAngleRad(fElapsedTime, 2.0)
 	fCos := CosGL(fAngRad)
 	fSin := CosGL(fAngRad)
@@ -192,15 +190,15 @@ func RotateAxis(fElapsedTime gl.Float) []gl.Float {
 	m[0].z = v.x * v.z * fInvCos - v.y * fSin
 	m[1].z = v.y * v.z * fInvCos + v.x * fSin
 	m[2].z = v.z * v.z + (1 - v.z * v.z) * fCos
-	return m.ToArray()
+	return m
 }
 
-func DynamicNonUniformScale(fElapsedTime gl.Float) []gl.Float {
+func DynamicNonUniformScale(fElapsedTime gl.Float) Vec4 {
 	fXLoopDuration := gl.Float(3.0)
 	fZLoopDuration := gl.Float(5.0)
 	mixx := 1.0 + 4.0 * CalcLerpFactor(fElapsedTime, fXLoopDuration)
 	mixz := 1.0 + 9.0 * CalcLerpFactor(fElapsedTime, fZLoopDuration)
-	return []gl.Float{mixx, 1.0, mixz}
+	return Vec4{mixx, 1.0, mixz, 1.0}
 }
 
 func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
@@ -275,17 +273,17 @@ func InitializeProgram() {
 		fmt.Fprintf(os.Stderr, "Invalid value error from glGetUniformLocation: cameraToClipMatrix\n")
 	}
 
-
-	cameraToClipMatrix[0] = fFrustumScale
-	cameraToClipMatrix[5] = fFrustumScale
-	cameraToClipMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
-	cameraToClipMatrix[11] = -1.0
-	cameraToClipMatrix[14] = (2 * fzFar * fzNear) / (fzNear - fzFar)
 	//DebugMat(cameraToClipMatrix, "Camera Matrix")
+
+	cameraToClipMatrix[0].x = fFrustumScale
+	cameraToClipMatrix[1].y = fFrustumScale
+	cameraToClipMatrix[2].z = (fzFar + fzNear) / (fzNear - fzFar)
+	cameraToClipMatrix[2].w = -1.0
+	cameraToClipMatrix[3].z = (2 * fzFar * fzNear) / (fzNear - fzFar)
 
 
 	gl.UseProgram(currentShader)
-	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
+	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0].x)
 	gl.UseProgram(0)
 }
 
@@ -341,7 +339,7 @@ func display() {
 		xform := instanceList[i].constructMatrix((gl.Float)(fElapsedTime))
 		//xformT := ToColumnMajor(xform)
 		//DebugMat(xform, instanceList[i].name)
-		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0])
+		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0].x)
 		fmt.Fprintf(os.Stderr, "Drawing %d elements\n", gl.Sizei(len(indexData)))
 		gl.DrawElements(
 			gl.TRIANGLES, 
@@ -357,11 +355,11 @@ func display() {
 }
 
 func reshape(w, h int) {
-	cameraToClipMatrix[0] = fFrustumScale * (gl.Float)(h) / (gl.Float)(w)
-	cameraToClipMatrix[5] = fFrustumScale
+	cameraToClipMatrix[0].x = fFrustumScale * (gl.Float)(h) / (gl.Float)(w)
+	cameraToClipMatrix[1].y = fFrustumScale
 
 	gl.UseProgram(currentShader)
-	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
+	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0].x)
 	gl.UseProgram(0)
 
 	gl.Viewport(0, 0, (gl.Sizei)(w), (gl.Sizei)(h))

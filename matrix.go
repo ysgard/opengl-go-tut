@@ -24,13 +24,13 @@ type Mat4 [4]Vec4
 
 // MulV - multiply receiving matrix by given Vec4 and return
 // the new Vec4
-func (m Mat4) MulV(v Vec4) Vec4 {
+func (m Mat4) MulV(v Vec4) *Vec4 {
 	rv := Vec4{0.0, 0.0, 0.0, 0.0}
 	rv.x = m[0].x * v.x + m[1].x * v.y + m[2].x * v.z + m[3].x * v.w
 	rv.y = m[0].y * v.x + m[1].y * v.y + m[2].y * v.z + m[3].y * v.w
 	rv.z = m[0].z * v.x + m[1].z * v.y + m[2].z * v.z + m[3].z * v.w
 	rv.w = m[0].w * v.x + m[1].w * v.y + m[2].w * v.z + m[3].w * v.w
-	return rv
+	return &rv
 }
 
 // ToArray - produce a []gl.Float array from a given struct.
@@ -47,13 +47,13 @@ func (m Mat4) ToArray() []gl.Float {
 }
 
 // IdentMat4 - return a Mat4 with identity values
-func IdentMat4() Mat4 {
+func IdentMat4() *Mat4 {
 	var m Mat4
 	m[0].x = 1.0
 	m[1].y = 1.0
 	m[2].z = 1.0
 	m[3].w = 1.0
-	return m
+	return &m
 }
 
 // Normalize - normalizes a vector, doesn't include w 
