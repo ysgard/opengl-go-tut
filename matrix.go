@@ -5,10 +5,12 @@ package main
 
 import (
 	"fmt"
+	gl "github.com/chsc/gogl/gl33"
 	"math"
 	"os"
-	gl "github.com/chsc/gogl/gl33"
 )
+
+const degToRad = math.Pi * 2.0 / 360
 
 // Change this to change where debug messages get sent
 var debugOut = os.Stderr
@@ -26,11 +28,18 @@ type Mat4 [4]Vec4
 // the new Vec4
 func (m Mat4) MulV(v Vec4) *Vec4 {
 	rv := Vec4{0.0, 0.0, 0.0, 0.0}
-	rv.x = m[0].x * v.x + m[1].x * v.y + m[2].x * v.z + m[3].x * v.w
-	rv.y = m[0].y * v.x + m[1].y * v.y + m[2].y * v.z + m[3].y * v.w
-	rv.z = m[0].z * v.x + m[1].z * v.y + m[2].z * v.z + m[3].z * v.w
-	rv.w = m[0].w * v.x + m[1].w * v.y + m[2].w * v.z + m[3].w * v.w
+	rv.x = m[0].x*v.x + m[1].x*v.y + m[2].x*v.z + m[3].x*v.w
+	rv.y = m[0].y*v.x + m[1].y*v.y + m[2].y*v.z + m[3].y*v.w
+	rv.z = m[0].z*v.x + m[1].z*v.y + m[2].z*v.z + m[3].z*v.w
+	rv.w = m[0].w*v.x + m[1].w*v.y + m[2].w*v.z + m[3].w*v.w
 	return &rv
+}
+
+// MulM - multiply receiving matrix by given Mat4 and return
+// the new Mat.
+func (m1 *Mat4) MulM(m2 Mul4) *Mat4 {
+	rm := IdentMat4()
+	rm[0] = Vec4{}
 }
 
 // ToArray - produce a []gl.Float array from a given struct.
@@ -58,7 +67,7 @@ func IdentMat4() *Mat4 {
 
 // Normalize - normalizes a vector, doesn't include w 
 func (v *Vec4) Normalize() {
-	lenv := (gl.Float)(math.Sqrt((float64)(v.x * v.x + v.y * v.y + v.z * v.z)))
+	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
 	v.x = v.x / lenv
 	v.y = v.y / lenv
 	v.z = v.z / lenv
@@ -91,12 +100,68 @@ func TanGL(Rad gl.Float) gl.Float {
 
 // Identity matrix, bare
 func Ident4() []gl.Float {
-	return []gl.Float {
+	return []gl.Float{
 		1.0, 0.0, 0.0, 0.0,
 		0.0, 1.0, 0.0, 0.0,
 		0.0, 0.0, 1.0, 0.0,
 		0.0, 0.0, 0.0, 1.0,
 	}
+}
+
+func DegToRad(fAngDeg gl.Float) gl.Float {
+	return fAngDeg * degToRad
+}
+
+func Clamp(fValue, fMinValue, fMaxValue gl.Float) gl.Float {
+	if fValue < fMinValue {
+		return fMinValue
+	} else if fValue > fMaxValue {
+		return fMaxValue
+	} else {
+		return fValue
+	}
+}
+
+// RotateX - returns a Mat4 representing a rotation matrix
+// for the angle given in degrees
+func RotateX(fAngDeg gl.Float) Mat4 {
+	fAngRad := DegToRad(fAngDeg)
+	fCos := CosGL(fAngRad)
+	fSin := SinGL(fAngRad)
+	theMat := IdentMat4()
+	theMat[1].y = fCos
+	theMat[2].y = -fSin
+	theMat[1].z = fSin
+	theMat[2].z = fCos
+	return theMat
+}
+
+// RotateY - returns a Mat4 representing a rotation matrix
+// for the angle given in degree
+func RotateY(fAngDeg gl.Float) Mat4 {
+	fAngRad := DegToRad(fAngDeg)
+	fCos := CosGL(fAngRad)
+	fSin := SinGL(fAngRad)
+	theMat := IdentMat4()
+	theMat[0].x = fCos
+	theMat[2].x = fSin
+	theMat[0].z = -fSin
+	theMat[2].z = fCos
+	return theMat
+}
+
+// RotateZ - returns a Mat4 representing a rotation matrix
+// for the angle given in degrees
+func RotateZ(fAngDeg gl.Float) Mat4 {
+	fAngRad := DegToRad(fAngDeg)
+	fCos := CosGL(fAngRad)
+	fSin := SinGL(fAngRad)
+	theMat := IdentMat4()
+	theMat[0].x = fCos
+	theMat[1].x = -fSin
+	theMat[0].y = fSin
+	theMat[1].y = fCos
+	return theMat
 }
 
 // DebugMat - Pretty-print a []gl.Float slice representing 
