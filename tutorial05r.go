@@ -10,10 +10,10 @@ import (
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
 	"github.com/jragonmiris/mathgl"
+	"math"
 	"os"
 	"runtime"
 	"unsafe"
-	"math"
 )
 
 const (
@@ -23,9 +23,9 @@ const (
 )
 
 const (
-	VertexFile = "shaders/cube_texture.vertexshader"
+	VertexFile   = "shaders/cube_texture.vertexshader"
 	FragmentFile = "shaders/cube_texture.fragmentshader"
-	TextureFile = "art/raine.tga"
+	TextureFile  = "art/raine.tga"
 )
 
 func loadTGA(imagePath string) gl.Uint {
@@ -54,12 +54,12 @@ func xForm(data []gl.Float, xform mathgl.Mat4f) {
 	// Apply the provided transformation matrix to all vertices in the 
 	// provided data.  
 	vertexCount := (int)(len(data) / 3)
-	for i := 0; i < vertexCount * 3; i += 3 {
-		var V  = mathgl.Vec4f{ 
-			(float32)(data[i]), 
-			(float32)(data[i+1]), 
-			(float32)(data[i+2]), 
-			1, }
+	for i := 0; i < vertexCount*3; i += 3 {
+		var V = mathgl.Vec4f{
+			(float32)(data[i]),
+			(float32)(data[i+1]),
+			(float32)(data[i+2]),
+			1}
 		V = xform.Mul4x1(V)
 		data[i] = (gl.Float)(V[0])
 		data[i+1] = (gl.Float)(V[1])
@@ -151,38 +151,38 @@ func main() {
 	// Three consecutive floats give a single 3D vertex
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2 = 12 triangles,
 	// and 12 * 3 vertices
-	vertexBufferData1 := []gl.Float{ 
-		-1, -1, -1,		// face 1
+	vertexBufferData1 := []gl.Float{
+		-1, -1, -1, // face 1
 		1, -1, 1,
 		-1, -1, 1,
 		-1, -1, -1,
 		1, -1, 1,
 		1, -1, -1,
-		1, -1, -1, 		// face 2
+		1, -1, -1, // face 2
 		1, 1, 1,
 		1, -1, 1,
 		1, -1, -1,
 		1, 1, 1,
 		1, 1, -1,
-		1, 1, -1,		// face 3
-		-1, 1, 1, 
+		1, 1, -1, // face 3
+		-1, 1, 1,
 		1, 1, 1,
 		1, 1, -1,
 		-1, 1, 1,
 		-1, 1, -1,
-		-1, 1, -1,		// face 4
+		-1, 1, -1, // face 4
 		-1, -1, 1,
 		-1, 1, 1,
 		-1, 1, -1,
 		-1, -1, 1,
 		-1, -1, -1,
-		1, -1, -1,		// face 5
+		1, -1, -1, // face 5
 		-1, 1, -1,
 		1, 1, -1,
 		1, -1, -1,
 		-1, 1, -1,
 		-1, -1, -1,
-		1, 1, 1,		// face 6
+		1, 1, 1, // face 6
 		-1, -1, 1,
 		1, -1, 1,
 		1, 1, 1,
@@ -202,7 +202,7 @@ func main() {
 		0, 0, 0, 0,
 		0, 0, 0, 0,
 		3, 0, 0, 1,
-	} 
+	}
 
 	var displaceXminus4 = mathgl.Mat4f{
 		0, 0, 0, 0,
@@ -271,13 +271,11 @@ func main() {
 	gl.GenBuffers(1, &vertexBuffer)          // Generate 1 buffer, grab the id
 	defer gl.DeleteBuffers(1, &vertexBuffer) // Make sure we delete this, no matter what happens
 
-
 	// Set up the UV buffer
 	var uvBuffer gl.Uint
 	gl.GenBuffers(1, &uvBuffer)
 	defer gl.DeleteBuffers(1, &uvBuffer)
 
-	
 	// Enable Z-buffer
 	gl.Enable(gl.DEPTH_TEST)
 	gl.DepthFunc(gl.LESS)
@@ -286,8 +284,8 @@ func main() {
 	// become tiresome after a while.  We want a full rotation
 	// every 6 seconds, which at 60fps works out to about 1 degree
 	// per frame, or 2*pi/360 radians.
-	cos_theta := (float32)(math.Cos((2*math.Pi)/360))
-	sin_theta := (float32)(math.Sin((2*math.Pi)/360))
+	cos_theta := (float32)(math.Cos((2 * math.Pi) / 360))
+	sin_theta := (float32)(math.Sin((2 * math.Pi) / 360))
 
 	var zRotationMatrix = mathgl.Mat4f{
 		cos_theta, sin_theta, 0.0, 0.0,
@@ -308,11 +306,8 @@ func main() {
 		0.0, 0.0, 0.0, 1.0,
 	}
 
-
 	// Clamp FPS to vertical sync rate
 	glfw.SetSwapInterval(1)
-
-
 
 	// Main loop - run until it dies, or we find something better
 	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) &&
@@ -341,10 +336,8 @@ func main() {
 		//mvpm := [16]gl.Float{0.93, -0.85, -0.68, -0.68, 0.0, 1.77, -0.51, -0.51, -1.24, -0.63, -0.51, -0.51, 0.0, 0.0, 5.65, 5.83}
 		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
-
 		// Draw each of the cubes
 		render(vertexBuffer, uvBuffer, mondoVertexData, mondoUVData, textureID, texture)
-
 
 		// Perform the translation of the camera viewpoint
 		// by sending the requested operation to the vertex shader
@@ -410,5 +403,3 @@ func render(vertexBuffer, uvBuffer gl.Uint, vertexData, uvData []gl.Float, textu
 	gl.DisableVertexAttribArray(0)
 	gl.DisableVertexAttribArray(1)
 }
-
-

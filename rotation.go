@@ -5,11 +5,11 @@ import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
+	"math"
 	"os"
 	"runtime"
-	"unsafe"
-	"math"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -20,6 +20,7 @@ const (
 
 // 
 const degToRad = math.Pi * 2.0 / 360
+
 var fFrustumScale gl.Float
 
 // Various GL
@@ -86,7 +87,7 @@ var indexData = []gl.Ushort{
 	0, 1, 2,
 	1, 0, 3,
 	2, 3, 0,
-	3, 2, 1, 
+	3, 2, 1,
 
 	5, 4, 6,
 	4, 5, 7,
@@ -95,9 +96,9 @@ var indexData = []gl.Ushort{
 }
 
 type Instance struct {
-	name string
-	RotateFunc func(gl.Float) (*Mat4)
-	offset Vec4
+	name       string
+	RotateFunc func(gl.Float) *Mat4
+	offset     Vec4
 }
 
 func (i Instance) constructMatrix(fElapsedTime gl.Float) *Mat4 {
@@ -105,7 +106,6 @@ func (i Instance) constructMatrix(fElapsedTime gl.Float) *Mat4 {
 	theMat[3] = i.offset
 	return theMat
 }
-
 
 var instanceList = []Instance{
 	{"NullRotation", NullRotation, Vec4{0.0, 0.0, -25.0, 1.0}},
@@ -115,7 +115,6 @@ var instanceList = []Instance{
 	{"RotateAxis", RotateAxis, Vec4{5.0, -5.0, -25.0, 1.0}},
 }
 
-
 func CalcLerpFactor(fElapsedTime, fLoopDuration gl.Float) gl.Float {
 	fValue := ModGL(fElapsedTime, fLoopDuration) / fLoopDuration
 	if fValue > 0.5 {
@@ -123,8 +122,6 @@ func CalcLerpFactor(fElapsedTime, fLoopDuration gl.Float) gl.Float {
 	}
 	return fValue * 2.0
 }
-
-
 
 func ComputeAngleRad(fElapsedTime, fLoopDuration gl.Float) gl.Float {
 	fScale := Pi * 2.0 / fLoopDuration
@@ -141,9 +138,9 @@ func RotateX(fElapsedTime gl.Float) *Mat4 {
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
 	theMat := IdentMat4()
-	theMat[1].y = fCos 
+	theMat[1].y = fCos
 	theMat[2].y = -fSin
-	theMat[1].z = fSin 
+	theMat[1].z = fSin
 	theMat[2].z = fCos
 	return theMat
 }
@@ -153,9 +150,9 @@ func RotateY(fElapsedTime gl.Float) *Mat4 {
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
 	theMat := IdentMat4()
-	theMat[0].x = fCos 
+	theMat[0].x = fCos
 	theMat[2].x = fSin
-	theMat[0].z = -fSin 
+	theMat[0].z = -fSin
 	theMat[2].z = fCos
 	return theMat
 }
@@ -167,7 +164,7 @@ func RotateZ(fElapsedTime gl.Float) *Mat4 {
 	theMat := IdentMat4()
 	theMat[0].x = fCos
 	theMat[1].x = -fSin
-	theMat[0].y = fSin 
+	theMat[0].y = fSin
 	theMat[1].y = fCos
 	return theMat
 }
@@ -181,31 +178,30 @@ func RotateAxis(fElapsedTime gl.Float) *Mat4 {
 	v := Vec4{1.0, 1.0, 1.0, 1.0}
 	v.Normalize()
 	m := IdentMat4()
-	m[0].x = (v.x * v.x) + ((1 - v.x * v.x) * fCos)
-	m[1].x = v.x * v.y * fInvCos - v.z * fSin
-	m[2].x = v.x * v.z * fInvCos + v.y * fSin
-	m[0].y = v.x * v.y * fInvCos + v.z * fSin
-	m[1].y = v.y * v.y + (1 - v.y * v.y) * fCos
-	m[2].y = v.y * v.z * fInvCos - v.x * fSin
-	m[0].z = v.x * v.z * fInvCos - v.y * fSin
-	m[1].z = v.y * v.z * fInvCos + v.x * fSin
-	m[2].z = v.z * v.z + (1 - v.z * v.z) * fCos
+	m[0].x = (v.x * v.x) + ((1 - v.x*v.x) * fCos)
+	m[1].x = v.x*v.y*fInvCos - v.z*fSin
+	m[2].x = v.x*v.z*fInvCos + v.y*fSin
+	m[0].y = v.x*v.y*fInvCos + v.z*fSin
+	m[1].y = v.y*v.y + (1-v.y*v.y)*fCos
+	m[2].y = v.y*v.z*fInvCos - v.x*fSin
+	m[0].z = v.x*v.z*fInvCos - v.y*fSin
+	m[1].z = v.y*v.z*fInvCos + v.x*fSin
+	m[2].z = v.z*v.z + (1-v.z*v.z)*fCos
 	return m
 }
 
 func DynamicNonUniformScale(fElapsedTime gl.Float) Vec4 {
 	fXLoopDuration := gl.Float(3.0)
 	fZLoopDuration := gl.Float(5.0)
-	mixx := 1.0 + 4.0 * CalcLerpFactor(fElapsedTime, fXLoopDuration)
-	mixz := 1.0 + 9.0 * CalcLerpFactor(fElapsedTime, fZLoopDuration)
+	mixx := 1.0 + 4.0*CalcLerpFactor(fElapsedTime, fXLoopDuration)
+	mixz := 1.0 + 9.0*CalcLerpFactor(fElapsedTime, fZLoopDuration)
 	return Vec4{mixx, 1.0, mixz, 1.0}
 }
 
 func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
 	fFovRad := fFovDeg * degToRad
-	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad / 2.0)))
+	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad/2.0)))
 }
-
 
 func InitializeVertexBuffers() {
 	gl.GenBuffers(1, &vertexBufferObject)
@@ -257,9 +253,7 @@ func glfwInitWindow() {
 	// Make sure we can capture the escape key
 	glfw.Enable(glfw.StickyKeys)
 
-
 }
-
 
 func InitializeProgram() {
 	// Create shaders and bind their variables
@@ -281,12 +275,10 @@ func InitializeProgram() {
 	cameraToClipMatrix[2].w = -1.0
 	cameraToClipMatrix[3].z = (2 * fzFar * fzNear) / (fzNear - fzFar)
 
-
 	gl.UseProgram(currentShader)
 	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0].x)
 	gl.UseProgram(0)
 }
-
 
 func Initialize() {
 
@@ -304,7 +296,7 @@ func Initialize() {
 	}
 	gl.BindVertexArray(vao)
 
-	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * numberOfVertices))
+	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0))*(uintptr)(3*numberOfVertices))
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.EnableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
@@ -342,9 +334,9 @@ func display() {
 		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0].x)
 		fmt.Fprintf(os.Stderr, "Drawing %d elements\n", gl.Sizei(len(indexData)))
 		gl.DrawElements(
-			gl.TRIANGLES, 
+			gl.TRIANGLES,
 			gl.Sizei(len(indexData)),
-			gl.UNSIGNED_SHORT, 
+			gl.UNSIGNED_SHORT,
 			nil)
 	}
 
@@ -370,17 +362,17 @@ func keyboard(key, state int) {
 		switch key {
 		case glfw.KeyEsc:
 			shutdown()
-	
-		// case glfw.KeySpace:
-		// 	if bDepthClamping == true {
-		// 		gl.Disable(gl.DEPTH_CLAMP)
-		// 	} else {
-		// 		gl.Enable(gl.DEPTH_CLAMP)
-		// 	}
-		// 	bDepthClamping = !bDepthClamping
-		// }
+
+			// case glfw.KeySpace:
+			// 	if bDepthClamping == true {
+			// 		gl.Disable(gl.DEPTH_CLAMP)
+			// 	} else {
+			// 		gl.Enable(gl.DEPTH_CLAMP)
+			// 	}
+			// 	bDepthClamping = !bDepthClamping
+			// }
 		}
-	return
+		return
 	}
 }
 

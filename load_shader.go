@@ -1,14 +1,14 @@
 /* Loads fragment and vertex shader code from the supplied files. */
 
-package main 
+package main
 
 import (
-	gl "github.com/chsc/gogl/gl33"
-	"fmt"
 	"bufio"
-	"os"
 	"bytes"
+	"fmt"
+	gl "github.com/chsc/gogl/gl33"
 	"io"
+	"os"
 )
 
 // Reads a file and returns its contents as a string.
@@ -42,18 +42,22 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 	// Create the shaders, defer their deletion until the function quits.
 	vertexShaderID := gl.CreateShader(gl.VERTEX_SHADER)
 	defer gl.DeleteShader(vertexShaderID)
-	fragmentShaderID := gl.CreateShader(gl.FRAGMENT_SHADER) 
+	fragmentShaderID := gl.CreateShader(gl.FRAGMENT_SHADER)
 	defer gl.DeleteShader(fragmentShaderID)
 
 	// Read the Vertex shader code from the file
 	vertexShaderCode, err := ReadSourceFile(vertexShaderFilePath)
-	if err != nil { return 0 }
+	if err != nil {
+		return 0
+	}
 	//fmt.Fprintf(os.Stdout, vertexShaderCode)
 	//fmt.Fprintf(os.Stdout, vSrc)
 
 	// Read the Fragment shader code from the file
 	fragmentShaderCode, err := ReadSourceFile(fragmentShaderFilePath)
-	if err != nil { return 0 }
+	if err != nil {
+		return 0
+	}
 
 	var result gl.Int = gl.TRUE
 	var infoLogLength gl.Int
@@ -113,7 +117,7 @@ func LoadShaders(vertexShaderFilePath, fragmentShaderFilePath string) gl.Uint {
 		gl.GetProgramInfoLog(ProgramID, gl.Sizei(infoLogLength), nil, programErrorMsg)
 		fmt.Fprintf(os.Stdout, "Program Info: %s\n", gl.GoString(programErrorMsg))
 	}
-	
+
 	fmt.Fprintf(os.Stdout, "LoadShader completed, ProgramID: %d\n", ProgramID)
 	return ProgramID
 }

@@ -22,9 +22,9 @@ const (
 )
 
 const (
-	VertexFile = "shaders/cube_texture.vertexshader"
+	VertexFile   = "shaders/cube_texture.vertexshader"
 	FragmentFile = "shaders/cube_texture.fragmentshader"
-	TextureFile = "art/liske.tga"
+	TextureFile  = "art/liske.tga"
 )
 
 func loadTGA(imagePath string) gl.Uint {
@@ -134,37 +134,37 @@ func main() {
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2 = 12 triangles,
 	// and 12 * 3 vertices
 	vertexBufferData := [...]gl.Float{ // N.B. We can't use []gl.Float, as that is a slice
-		-1, -1, -1,		// face 1
+		-1, -1, -1, // face 1
 		1, -1, 1,
 		-1, -1, 1,
 		-1, -1, -1,
 		1, -1, 1,
 		1, -1, -1,
-		1, -1, -1, 		// face 2
+		1, -1, -1, // face 2
 		1, 1, 1,
 		1, -1, 1,
 		1, -1, -1,
 		1, 1, 1,
 		1, 1, -1,
-		1, 1, -1,		// face 3
-		-1, 1, 1, 
+		1, 1, -1, // face 3
+		-1, 1, 1,
 		1, 1, 1,
 		1, 1, -1,
 		-1, 1, 1,
 		-1, 1, -1,
-		-1, 1, -1,		// face 4
+		-1, 1, -1, // face 4
 		-1, -1, 1,
 		-1, 1, 1,
 		-1, 1, -1,
 		-1, -1, 1,
 		-1, -1, -1,
-		1, -1, -1,		// face 5
+		1, -1, -1, // face 5
 		-1, 1, -1,
 		1, 1, -1,
 		1, -1, -1,
 		-1, 1, -1,
 		-1, -1, -1,
-		1, 1, 1,		// face 6
+		1, 1, 1, // face 6
 		-1, -1, 1,
 		1, -1, 1,
 		1, 1, 1,

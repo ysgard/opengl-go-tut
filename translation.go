@@ -4,11 +4,11 @@ import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
+	"math"
 	"os"
 	"runtime"
-	"unsafe"
-	"math"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 
 // 
 const degToRad = math.Pi * 2.0 / 360
+
 var fFrustumScale gl.Float
 
 // Various GL
@@ -85,7 +86,7 @@ var indexData = []gl.Ushort{
 	0, 1, 2,
 	1, 0, 3,
 	2, 3, 0,
-	3, 2, 1, 
+	3, 2, 1,
 
 	5, 4, 6,
 	4, 5, 7,
@@ -94,8 +95,8 @@ var indexData = []gl.Ushort{
 }
 
 type Instance struct {
-	name string
-	calcOffset func(gl.Float) ([]gl.Float)
+	name       string
+	calcOffset func(gl.Float) []gl.Float
 }
 
 func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
@@ -118,17 +119,15 @@ func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
 	return theMat
 }
 
-
 var instanceList = []Instance{
 	{"StationaryOffset", StationaryOffset},
 	{"OvalOffset", OvalOffset},
 	{"BottomCircleOffset", BottomCircleOffset},
 }
 
-
 func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
 	fFovRad := fFovDeg * degToRad
-	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad / 2.0)))
+	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad/2.0)))
 }
 
 // arg: fElapsedTime gl.Float
@@ -145,8 +144,8 @@ func OvalOffset(fElapsedTime gl.Float) []gl.Float {
 
 	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)
 	return []gl.Float{
-		(gl.Float)(math.Cos(fCurrTimeThroughLoop * fScale) * 4.0),
-		(gl.Float)(math.Sin(fCurrTimeThroughLoop * fScale) * 6.0),
+		(gl.Float)(math.Cos(fCurrTimeThroughLoop*fScale) * 4.0),
+		(gl.Float)(math.Sin(fCurrTimeThroughLoop*fScale) * 6.0),
 		-20.0}
 }
 
@@ -156,11 +155,11 @@ func BottomCircleOffset(fElapsedTime gl.Float) []gl.Float {
 	fLoopDuration := 12.0
 	fScale := math.Pi * 2.0 / fLoopDuration
 
-	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)	
+	fCurrTimeThroughLoop := math.Mod((float64)(fElapsedTime), fLoopDuration)
 	return []gl.Float{
-		(gl.Float)(math.Cos(fCurrTimeThroughLoop * fScale) * 5.0),
+		(gl.Float)(math.Cos(fCurrTimeThroughLoop*fScale) * 5.0),
 		-3.5,
-		(gl.Float)(math.Sin(fCurrTimeThroughLoop * fScale) * 5.0 - 20.0)}
+		(gl.Float)(math.Sin(fCurrTimeThroughLoop*fScale)*5.0 - 20.0)}
 }
 
 func InitializeVertexBuffers() {
@@ -213,9 +212,7 @@ func glfwInitWindow() {
 	// Make sure we can capture the escape key
 	glfw.Enable(glfw.StickyKeys)
 
-
 }
-
 
 func ToColumnMajor(m []gl.Float) []gl.Float {
 	cm := make([]gl.Float, 16)
@@ -250,7 +247,6 @@ func InitializeProgram() {
 		fmt.Fprintf(os.Stderr, "Invalid value error from glGetUniformLocation: cameraToClipMatrix\n")
 	}
 
-
 	cameraToClipMatrix[0] = fFrustumScale
 	cameraToClipMatrix[5] = fFrustumScale
 	cameraToClipMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
@@ -258,12 +254,10 @@ func InitializeProgram() {
 	cameraToClipMatrix[14] = (2 * fzFar * fzNear) / (fzNear - fzFar)
 	debugMat(cameraToClipMatrix, "Camera Matrix")
 
-
 	gl.UseProgram(currentShader)
 	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
 	gl.UseProgram(0)
 }
-
 
 func Initialize() {
 
@@ -281,7 +275,7 @@ func Initialize() {
 	}
 	gl.BindVertexArray(vao)
 
-	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * numberOfVertices))
+	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0))*(uintptr)(3*numberOfVertices))
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.EnableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
@@ -319,9 +313,9 @@ func display() {
 		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0])
 		fmt.Fprintf(os.Stderr, "Drawing %d elements\n", gl.Sizei(len(indexData)))
 		gl.DrawElements(
-			gl.TRIANGLES, 
+			gl.TRIANGLES,
 			gl.Sizei(len(indexData)),
-			gl.UNSIGNED_SHORT, 
+			gl.UNSIGNED_SHORT,
 			nil)
 	}
 
@@ -347,17 +341,17 @@ func keyboard(key, state int) {
 		switch key {
 		case glfw.KeyEsc:
 			shutdown()
-	
-		// case glfw.KeySpace:
-		// 	if bDepthClamping == true {
-		// 		gl.Disable(gl.DEPTH_CLAMP)
-		// 	} else {
-		// 		gl.Enable(gl.DEPTH_CLAMP)
-		// 	}
-		// 	bDepthClamping = !bDepthClamping
-		// }
+
+			// case glfw.KeySpace:
+			// 	if bDepthClamping == true {
+			// 		gl.Disable(gl.DEPTH_CLAMP)
+			// 	} else {
+			// 		gl.Enable(gl.DEPTH_CLAMP)
+			// 	}
+			// 	bDepthClamping = !bDepthClamping
+			// }
 		}
-	return
+		return
 	}
 }
 

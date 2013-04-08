@@ -7,8 +7,8 @@ package main
 
 import (
 	"fmt"
-	gl "github.com/chsc/gogl/gl33"
 	"github.com/Jragonmiris/mathgl"
+	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
 	"os"
 	"runtime"
@@ -22,9 +22,10 @@ const (
 )
 
 const (
-	VertexFile = "shaders/cube_texture.vertexshader"
+	VertexFile   = "shaders/cube_texture.vertexshader"
 	FragmentFile = "shaders/cube_texture.fragmentshader"
-	TextureFile = "art/liske.tga")
+	TextureFile  = "art/liske.tga"
+)
 
 func loadTGA(imagePath string) gl.Uint {
 	// Create one OpenGL texture
@@ -50,8 +51,8 @@ func loadTGA(imagePath string) gl.Uint {
 
 func dump4f(m mathgl.Mat4f) {
 	for i := 0; i < 4; i++ {
-		fmt.Printf("{ %f, %f, %f, %f }\n", 
-			m[i * 4 ], m[i * 4 + 1], m[i * 4 +2], m[i * 4 + 3])
+		fmt.Printf("{ %f, %f, %f, %f }\n",
+			m[i*4], m[i*4+1], m[i*4+2], m[i*4+3])
 	}
 }
 
@@ -122,10 +123,8 @@ func main() {
 	// Model matrix: and identity matrix (model will be at the origin)
 	model := mathgl.Ident4f() // Changes for each model!
 
-
 	// Our ModelViewProjection : multiplication of our 3 matrices - remember, matrix mult is other way around
 	MVP := projection.Mul4(view).Mul4(model) // projection * view * model
-
 
 	// An array of 3 vectors which represents 3 vertices of a triangle
 	/*vertexBufferData2 := [9]gl.Float{	// N.B. We can't use []gl.Float, as that is a slice
@@ -142,37 +141,37 @@ func main() {
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2 = 12 triangles,
 	// and 12 * 3 vertices
 	vertexBufferData := [...]gl.Float{ // N.B. We can't use []gl.Float, as that is a slice
-		-1, -1, -1,		// face 1
+		-1, -1, -1, // face 1
 		1, -1, 1,
 		-1, -1, 1,
 		-1, -1, -1,
 		1, -1, 1,
 		1, -1, -1,
-		1, -1, -1, 		// face 2
+		1, -1, -1, // face 2
 		1, 1, 1,
 		1, -1, 1,
 		1, -1, -1,
 		1, 1, 1,
 		1, 1, -1,
-		1, 1, -1,		// face 3
-		-1, 1, 1, 
+		1, 1, -1, // face 3
+		-1, 1, 1,
 		1, 1, 1,
 		1, 1, -1,
 		-1, 1, 1,
 		-1, 1, -1,
-		-1, 1, -1,		// face 4
+		-1, 1, -1, // face 4
 		-1, -1, 1,
 		-1, 1, 1,
 		-1, 1, -1,
 		-1, -1, 1,
 		-1, -1, -1,
-		1, -1, -1,		// face 5
+		1, -1, -1, // face 5
 		-1, 1, -1,
 		1, 1, -1,
 		1, -1, -1,
 		-1, 1, -1,
 		-1, -1, -1,
-		1, 1, 1,		// face 6
+		1, 1, 1, // face 6
 		-1, -1, 1,
 		1, -1, 1,
 		1, 1, 1,
@@ -232,7 +231,6 @@ func main() {
 		1, 0,
 	}
 
-
 	// One color for each vertex. They were generated randomly.
 	/*colorBufferData := [...]gl.Float{
 		0.583, 0.771, 0.014,
@@ -273,11 +271,6 @@ func main() {
 		0.982, 0.099, 0.879,
 	}*/
 
-
-
-
-
-
 	// Time to draw this sucker.
 	var vertexBuffer gl.Uint                 // id the vertex buffer
 	gl.GenBuffers(1, &vertexBuffer)          // Generate 1 buffer, grab the id
@@ -302,7 +295,6 @@ func main() {
 		gl.Sizeiptr(unsafe.Sizeof(uvBufferData)),
 		gl.Pointer(&uvBufferData),
 		gl.STATIC_DRAW)
-
 
 	// Enable Z-buffer
 	gl.Enable(gl.DEPTH_TEST)
@@ -329,8 +321,6 @@ func main() {
 		//mvpm := [16]gl.Float{0.93, -0.85, -0.68, -0.68, 0.0, 1.77, -0.51, -0.51, -1.24, -0.63, -0.51, -0.51, 0.0, 0.0, 5.65, 5.83}
 		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
-		
-
 		fmt.Printf("Iteration %d\n", iter)
 		dump4f(MVP)
 		//dump4f(MVP2)
@@ -340,9 +330,6 @@ func main() {
 		gl.ActiveTexture(gl.TEXTURE0)
 		gl.BindTexture(gl.TEXTURE_2D, texture)
 		gl.Uniform1i(textureID, 0)
-
-
-
 
 		// 1st attribute buffer: vertices
 		gl.EnableVertexAttribArray(0)
@@ -359,14 +346,12 @@ func main() {
 		gl.EnableVertexAttribArray(1)
 		gl.BindBuffer(gl.ARRAY_BUFFER, uvBuffer)
 		gl.VertexAttribPointer(
-			1,		// Attribute 1.  Again, no particular reason, but must match layout
-			2,		// size
+			1,        // Attribute 1.  Again, no particular reason, but must match layout
+			2,        // size
 			gl.FLOAT, // Type
-			gl.FALSE,	// normalized?
+			gl.FALSE, // normalized?
 			0,
-			nil)	// array buffer offset
-
-
+			nil) // array buffer offset
 
 		// Draw the cube!
 		gl.DrawArrays(gl.TRIANGLES, 0, 12*3) // Starting from vertex 0, 3 vertices total -> triangle

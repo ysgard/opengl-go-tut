@@ -67,7 +67,7 @@ func glInit() {
 // displayWindow - render an OpenGL frame, this function should be called
 // from the main loop
 func display(positionBuffer, colorBuffer gl.Uint, vertexCount gl.Sizei, positionData []gl.Float) {
-	
+
 	fXOffset, fYOffset := computePositionOffsets()
 	adjustVertexData(fXOffset, fYOffset, positionData, positionBuffer)
 
@@ -140,15 +140,14 @@ func initializeVertexBuffer(vertices []gl.Float) (gl.Uint, gl.Sizei) {
 func computePositionOffsets() (fXOffset, fYOffset float64) {
 	// Compute offsets for a rotating point
 	fLoopDuration := 5.0
-	fScale := math.Pi * 2.0 / fLoopDuration;
+	fScale := math.Pi * 2.0 / fLoopDuration
 	fElapsedTime := glfw.Time()
 	fCurrTimeThroughLoop := math.Mod(fElapsedTime, fLoopDuration)
 
-	fXOffset = math.Cos(fCurrTimeThroughLoop * fScale) * 0.5
-	fYOffset = math.Sin(fCurrTimeThroughLoop * fScale) * 0.5
+	fXOffset = math.Cos(fCurrTimeThroughLoop*fScale) * 0.5
+	fYOffset = math.Sin(fCurrTimeThroughLoop*fScale) * 0.5
 	return
 }
-
 
 func adjustVertexData(fXOffset, fYOffset float64, vertexData []gl.Float, positionBuffer gl.Uint) {
 	newData := make([]gl.Float, len(vertexData))
@@ -169,7 +168,6 @@ func adjustVertexData(fXOffset, fYOffset float64, vertexData []gl.Float, positio
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 }
-
 
 func main() {
 	// Sit. Good boy.

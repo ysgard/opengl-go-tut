@@ -4,11 +4,11 @@ import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
+	"math"
 	"os"
 	"runtime"
-	"unsafe"
-	"math"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -19,6 +19,7 @@ const (
 
 // 
 const degToRad = math.Pi * 2.0 / 360
+
 var fFrustumScale gl.Float
 
 // Various GL
@@ -85,7 +86,7 @@ var indexData = []gl.Ushort{
 	0, 1, 2,
 	1, 0, 3,
 	2, 3, 0,
-	3, 2, 1, 
+	3, 2, 1,
 
 	5, 4, 6,
 	4, 5, 7,
@@ -94,9 +95,9 @@ var indexData = []gl.Ushort{
 }
 
 type Instance struct {
-	name string
-	calcScale func(gl.Float) ([3]gl.Float)
-	offset [3]gl.Float
+	name      string
+	calcScale func(gl.Float) [3]gl.Float
+	offset    [3]gl.Float
 }
 
 func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
@@ -123,7 +124,6 @@ func (i Instance) constructMatrix(fElapsedTime gl.Float) []gl.Float {
 	return theMat
 }
 
-
 var instanceList = []Instance{
 	{"NullScale", NullScale, [3]gl.Float{0.0, 0.0, -45.0}},
 	{"StaticUniformScale", StaticUniformScale, [3]gl.Float{-10.0, -10.0, -45.0}},
@@ -131,7 +131,6 @@ var instanceList = []Instance{
 	{"DynamicUniformScale", DynamicUniformScale, [3]gl.Float{10.0, 10.0, -45.0}},
 	{"DynamicNonUniformScale", DynamicNonUniformScale, [3]gl.Float{10.0, -10.0, -45.0}},
 }
-
 
 func CalcLerpFactor(fElapsedTime, fLoopDuration gl.Float) gl.Float {
 	fValue := (gl.Float)(math.Mod((float64)(fElapsedTime), (float64)(fLoopDuration))) / fLoopDuration
@@ -159,23 +158,22 @@ func StaticNonUniformScale(fElapsedTime gl.Float) [3]gl.Float {
 
 func DynamicUniformScale(fElapsedTime gl.Float) [3]gl.Float {
 	fLoopDuration := gl.Float(3.0)
-	mix := 1.0 + 3.0 * CalcLerpFactor(fElapsedTime, fLoopDuration)
+	mix := 1.0 + 3.0*CalcLerpFactor(fElapsedTime, fLoopDuration)
 	return [3]gl.Float{mix, mix, mix}
 }
 
 func DynamicNonUniformScale(fElapsedTime gl.Float) [3]gl.Float {
 	fXLoopDuration := gl.Float(3.0)
 	fZLoopDuration := gl.Float(5.0)
-	mixx := 1.0 + 4.0 * CalcLerpFactor(fElapsedTime, fXLoopDuration)
-	mixz := 1.0 + 9.0 * CalcLerpFactor(fElapsedTime, fZLoopDuration)
+	mixx := 1.0 + 4.0*CalcLerpFactor(fElapsedTime, fXLoopDuration)
+	mixz := 1.0 + 9.0*CalcLerpFactor(fElapsedTime, fZLoopDuration)
 	return [3]gl.Float{mixx, 1.0, mixz}
 }
 
 func CalcFrustumScale(fFovDeg gl.Float) gl.Float {
 	fFovRad := fFovDeg * degToRad
-	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad / 2.0)))
+	return (gl.Float)(1.0 / math.Tan((float64)(fFovRad/2.0)))
 }
-
 
 func InitializeVertexBuffers() {
 	gl.GenBuffers(1, &vertexBufferObject)
@@ -227,9 +225,7 @@ func glfwInitWindow() {
 	// Make sure we can capture the escape key
 	glfw.Enable(glfw.StickyKeys)
 
-
 }
-
 
 func InitializeProgram() {
 	// Create shaders and bind their variables
@@ -243,7 +239,6 @@ func InitializeProgram() {
 		fmt.Fprintf(os.Stderr, "Invalid value error from glGetUniformLocation: cameraToClipMatrix\n")
 	}
 
-
 	cameraToClipMatrix[0] = fFrustumScale
 	cameraToClipMatrix[5] = fFrustumScale
 	cameraToClipMatrix[10] = (fzFar + fzNear) / (fzNear - fzFar)
@@ -251,12 +246,10 @@ func InitializeProgram() {
 	cameraToClipMatrix[14] = (2 * fzFar * fzNear) / (fzNear - fzFar)
 	DebugMat(cameraToClipMatrix, "Camera Matrix")
 
-
 	gl.UseProgram(currentShader)
 	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
 	gl.UseProgram(0)
 }
-
 
 func Initialize() {
 
@@ -274,7 +267,7 @@ func Initialize() {
 	}
 	gl.BindVertexArray(vao)
 
-	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * numberOfVertices))
+	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0))*(uintptr)(3*numberOfVertices))
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.EnableVertexAttribArray(0)
 	gl.EnableVertexAttribArray(1)
@@ -312,9 +305,9 @@ func display() {
 		gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE, &xform[0])
 		fmt.Fprintf(os.Stderr, "Drawing %d elements\n", gl.Sizei(len(indexData)))
 		gl.DrawElements(
-			gl.TRIANGLES, 
+			gl.TRIANGLES,
 			gl.Sizei(len(indexData)),
-			gl.UNSIGNED_SHORT, 
+			gl.UNSIGNED_SHORT,
 			nil)
 	}
 
@@ -340,17 +333,17 @@ func keyboard(key, state int) {
 		switch key {
 		case glfw.KeyEsc:
 			shutdown()
-	
-		// case glfw.KeySpace:
-		// 	if bDepthClamping == true {
-		// 		gl.Disable(gl.DEPTH_CLAMP)
-		// 	} else {
-		// 		gl.Enable(gl.DEPTH_CLAMP)
-		// 	}
-		// 	bDepthClamping = !bDepthClamping
-		// }
+
+			// case glfw.KeySpace:
+			// 	if bDepthClamping == true {
+			// 		gl.Disable(gl.DEPTH_CLAMP)
+			// 	} else {
+			// 		gl.Enable(gl.DEPTH_CLAMP)
+			// 	}
+			// 	bDepthClamping = !bDepthClamping
+			// }
 		}
-	return
+		return
 	}
 }
 

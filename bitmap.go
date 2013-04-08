@@ -4,20 +4,21 @@ Package bitmap implements a simple type to load, hold and manipulate bitmaps.
 */
 package main
 
-import(
-	"os"
-	"fmt"
+import (
 	"encoding/binary"
 	"errors"
+	"fmt"
+	"os"
 )
 
-type Bitmap struct{
-	header []byte
-	dataPos uint32
+type Bitmap struct {
+	header        []byte
+	dataPos       uint32
 	width, height uint32
-	imageSize uint32
-	data []byte
+	imageSize     uint32
+	data          []byte
 }
+
 // NewBitmap takes a filename and returns a bitmap object that holds the 
 // data in that file.  If it cannot load the bitmap for whatever reason,
 // the Bitmap pointer will be nil.
@@ -25,7 +26,7 @@ func NewBitmap(path string) (*Bitmap, error) {
 	var b *Bitmap = new(Bitmap)
 	if _, err := b.Load(path); err != nil {
 		return nil, err
-	} 
+	}
 	return b, nil
 }
 
@@ -59,11 +60,11 @@ func (b *Bitmap) Load(path string) (int, error) {
 	b.height = binary.LittleEndian.Uint32(b.header[22:26])
 
 	// Sanity checks
-	if (b.imageSize == 0) {
-		b.imageSize = b.width * b.height * 3; // one byte per color
+	if b.imageSize == 0 {
+		b.imageSize = b.width * b.height * 3 // one byte per color
 	}
-	if (b.dataPos == 0) {
-		b.dataPos = 54; // BMP header done that way.
+	if b.dataPos == 0 {
+		b.dataPos = 54 // BMP header done that way.
 	}
 
 	// Allocate appropriate slice to hold the data
@@ -73,9 +74,9 @@ func (b *Bitmap) Load(path string) (int, error) {
 	size, err := fp.Read(b.data)
 	if err != nil {
 		return size, err
-	} 
+	}
 	return size, nil
-	
+
 }
 
 func (b *Bitmap) Info() {
@@ -85,7 +86,7 @@ func (b *Bitmap) Info() {
 	fmt.Fprintf(os.Stdout, "Header data:\n")
 	for i, val := range b.header {
 		fmt.Fprintf(os.Stdout, "%0x ", val)
-		if (i + 1) % 8 == 0 {
+		if (i+1)%8 == 0 {
 			fmt.Fprintf(os.Stdout, "\n")
 		}
 	}
@@ -94,9 +95,8 @@ func (b *Bitmap) Info() {
 	fmt.Println("\n****** DATA ******")
 	for i := 0; i < 16; i++ {
 		fmt.Fprintf(os.Stdout, "%x ", b.data[i])
-		if (i + 1) % 8 == 0 {
+		if (i+1)%8 == 0 {
 			fmt.Fprintf(os.Stdout, "\n")
 		}
 	}
 }
-

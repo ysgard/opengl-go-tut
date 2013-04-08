@@ -9,8 +9,8 @@ import (
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
 	"os"
-	"unsafe"
 	"runtime"
+	"unsafe"
 )
 
 const (
@@ -56,13 +56,12 @@ func main() {
 		"shaders/simple_vertex_shader.glsl",
 		"shaders/simple_fragment_shader.glsl")
 	gl.ValidateProgram(programID)
-	var validationErr gl.Int 
+	var validationErr gl.Int
 	gl.GetProgramiv(programID, gl.VALIDATE_STATUS, &validationErr)
 	if validationErr == gl.FALSE {
 		fmt.Fprintf(os.Stderr, "Shader program failed validation!")
 	}
 
-	
 	// Time to create some graphics!  
 	var vertexArrayID gl.Uint = 0
 	gl.GenVertexArrays(1, &vertexArrayID)
@@ -70,37 +69,35 @@ func main() {
 	defer gl.DeleteVertexArrays(1, &vertexArrayID) // Make sure this gets called before main is done
 
 	// An array of 3 vectors which represents 3 vertices of a triangle
-	vertexBufferData := [9]gl.Float{	// N.B. We can't use []gl.Float, as that is a slice
-		-1.0, -1.0, 0.0,				// We always want to use raw arrays when passing pointers
-		1.0, -1.0, 0.0,					// to OpenGL
+	vertexBufferData := [9]gl.Float{ // N.B. We can't use []gl.Float, as that is a slice
+		-1.0, -1.0, 0.0, // We always want to use raw arrays when passing pointers
+		1.0, -1.0, 0.0, // to OpenGL
 		0.0, 1.0, 0.0,
 	}
 
 	// Time to draw this sucker.
-	var vertexBuffer gl.Uint // id the vertex buffer
-	gl.GenBuffers(1, &vertexBuffer) // Generate 1 buffer, grab the id
+	var vertexBuffer gl.Uint                 // id the vertex buffer
+	gl.GenBuffers(1, &vertexBuffer)          // Generate 1 buffer, grab the id
 	defer gl.DeleteBuffers(1, &vertexBuffer) // Make sure we delete this, no matter what happens
 	// The following commands will talk about our 'vertexBuffer'
-	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer) 
+	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
 	// Give our vertices to OpenGL
 	// WARNING!  This looks EXTREMELY fragile
 	gl.BufferData(
-		gl.ARRAY_BUFFER, 
+		gl.ARRAY_BUFFER,
 		gl.Sizeiptr(unsafe.Sizeof(vertexBufferData)), // Already pretty bad
-		gl.Pointer(&vertexBufferData),  // SWEET ZOMBIE JESUS PLEASE DON'T CRASH MY MACHINE
+		gl.Pointer(&vertexBufferData),                // SWEET ZOMBIE JESUS PLEASE DON'T CRASH MY MACHINE
 		gl.STATIC_DRAW)
 
 	//fmt.Fprintf(os.Stdout, "Got this far.  vertexBufferData length: %d\n", len(vertexBufferData))
 	//fmt.Fprintf(os.Stdout, "unsafe.Sizeof(vertexBufferData) - %v \n", unsafe.Sizeof(vertexBufferData))
 
-	
-
 	// Main loop - run until it dies, or we find something better
-	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) && 
+	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) &&
 		(glfw.WindowParam(glfw.Opened) == 1) {
 
 		// Clear the screen
-		gl.Clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)
+		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		// Want to use our loaded shaders
 		gl.UseProgram(programID)
@@ -109,23 +106,19 @@ func main() {
 		gl.EnableVertexAttribArray(0)
 		gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
 		gl.VertexAttribPointer(
-			0,			// Attribute 0. No particular reason for 0, but must match layout in shader
-			3,			// size
-			gl.FLOAT,	// Type
-			gl.FALSE,	// normalized?
-			0,			// stride
-			nil)	// array buffer offset
+			0,        // Attribute 0. No particular reason for 0, but must match layout in shader
+			3,        // size
+			gl.FLOAT, // Type
+			gl.FALSE, // normalized?
+			0,        // stride
+			nil)      // array buffer offset
 
 		// Draw the triangle!
-		gl.DrawArrays(gl.TRIANGLES, 0, 3)	// Starting from vertex 0, 3 vertices total -> triangle
+		gl.DrawArrays(gl.TRIANGLES, 0, 3) // Starting from vertex 0, 3 vertices total -> triangle
 
 		gl.DisableVertexAttribArray(0)
 
-
-
 		glfw.SwapBuffers()
 	}
-
-
 
 }

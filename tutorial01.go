@@ -48,7 +48,7 @@ func main() {
 	glfw.Enable(glfw.StickyKeys)
 
 	// Main loop - run until it dies, or we find something better
-	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) && 
+	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) &&
 		(glfw.WindowParam(glfw.Opened) == 1) {
 		glfw.SwapBuffers()
 	}

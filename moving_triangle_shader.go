@@ -72,7 +72,6 @@ func glInit() {
 // displayWindow - render an OpenGL frame, this function should be called
 // from the main loop
 func display(positionBuffer gl.Uint, vertexCount gl.Sizei) {
-	
 
 	// Set the background
 	gl.ClearColor(bgRed, bgGreen, bgBlue, bgAlpha)
@@ -100,7 +99,7 @@ func display(positionBuffer gl.Uint, vertexCount gl.Sizei) {
 	gl.DrawArrays(gl.TRIANGLES, 0, vertexCount)
 
 	// Second triangle
-	gl.Uniform1f(elapsedTimeUniform, (gl.Float)(glfw.Time() + 1.0))
+	gl.Uniform1f(elapsedTimeUniform, (gl.Float)(glfw.Time()+1.0))
 	gl.DrawArrays(gl.TRIANGLES, 0, vertexCount)
 
 	// Disable the vertex attribute arrays, reset shader
@@ -128,7 +127,6 @@ func initializeVertexBuffer(vertices []gl.Float) (gl.Uint, gl.Sizei) {
 
 	return buf, (gl.Sizei)(bufferLen)
 }
-
 
 func main() {
 	// Sit. Good boy.

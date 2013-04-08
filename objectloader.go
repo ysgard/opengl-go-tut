@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	 debug = false
+	debug = false
 )
 
 func debugMsg(msg string) {

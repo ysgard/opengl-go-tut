@@ -8,13 +8,13 @@ package main
 import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
-	"github.com/jragonmiris/mathgl"
 	"github.com/go-gl/glfw"
+	"github.com/jragonmiris/mathgl"
+	"math/rand"
 	"os"
 	"runtime"
-	"unsafe"
-	"math/rand"
 	"time"
+	"unsafe"
 )
 
 const (
@@ -24,9 +24,9 @@ const (
 )
 
 const (
-	VertexFile = "shaders/cube_transform.vertexshader"
-	FragmentFile = "shaders/cube_color.fragmentshader")
-
+	VertexFile   = "shaders/cube_transform.vertexshader"
+	FragmentFile = "shaders/cube_color.fragmentshader"
+)
 
 func main() {
 	runtime.LockOSThread()
@@ -95,10 +95,8 @@ func main() {
 	// Model matrix: and identity matrix (model will be at the origin)
 	model := mathgl.Ident4f() // Changes for each model!
 
-
 	// Our ModelViewProjection : multiplication of our 3 matrices - remember, matrix mult is other way around
 	MVP := projection.Mul4(view).Mul4(model) // projection * view * model
-
 
 	// An array of 3 vectors which represents 3 vertices of a triangle
 	/*vertexBufferData2 := [9]gl.Float{	// N.B. We can't use []gl.Float, as that is a slice
@@ -153,9 +151,9 @@ func main() {
 	now := time.Now()
 	rnd := rand.New(rand.NewSource(now.Unix()))
 
-	var colorBufferData [3*12*3]gl.Float
+	var colorBufferData [3 * 12 * 3]gl.Float
 	for i := 0; i < 3*12*3; i += 3 {
-		colorBufferData[i] = (gl.Float)(rnd.Float32())	// red
+		colorBufferData[i] = (gl.Float)(rnd.Float32())   // red
 		colorBufferData[i+1] = (gl.Float)(rnd.Float32()) // blue
 		colorBufferData[i+2] = (gl.Float)(rnd.Float32()) // green
 	}
@@ -268,12 +266,12 @@ func main() {
 		gl.EnableVertexAttribArray(1)
 		gl.BindBuffer(gl.ARRAY_BUFFER, colorBuffer)
 		gl.VertexAttribPointer(
-			1,		// Attribute 1.  Again, no particular reason, but must match layout
-			3,		// size
+			1,        // Attribute 1.  Again, no particular reason, but must match layout
+			3,        // size
 			gl.FLOAT, // Type
-			gl.FALSE,	// normalized?
+			gl.FALSE, // normalized?
 			0,
-			nil)	// array buffer offset
+			nil) // array buffer offset
 
 		// Buffer new color data
 		gl.BufferData(
@@ -284,7 +282,7 @@ func main() {
 
 		// Cycle the colors
 		for i := 0; i < 3*12*3; i += 3 {
-			colorBufferData[i] = (gl.Float)(rnd.Float32())	// red
+			colorBufferData[i] = (gl.Float)(rnd.Float32())   // red
 			colorBufferData[i+1] = (gl.Float)(rnd.Float32()) // blue
 			colorBufferData[i+2] = (gl.Float)(rnd.Float32()) // green
 		}

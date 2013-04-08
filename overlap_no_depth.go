@@ -30,7 +30,6 @@ var fFrustumScale = gl.Float(1.0)
 var fzNear = gl.Float(0.5)
 var fzFar = gl.Float(3.0)
 
-
 // Shader ilenames
 var shaders = []string{
 	"shaders/standard.vert",
@@ -52,6 +51,7 @@ type Color struct {
 	B gl.Float
 	W gl.Float
 }
+
 var RIGHT_EXTENT = gl.Float(0.8)
 var LEFT_EXTENT = -RIGHT_EXTENT
 var TOP_EXTENT = gl.Float(0.2)
@@ -71,7 +71,7 @@ var indexData = [...]gl.Short{
 	3, 2, 0,
 
 	4, 5, 6,
-	6, 7, 4, 
+	6, 7, 4,
 
 	8, 9, 10,
 	11, 13, 12,
@@ -79,7 +79,6 @@ var indexData = [...]gl.Short{
 	14, 16, 15,
 	17, 16, 14,
 }
-
 
 func glfwInitWindow() {
 	// Initialize glfw
@@ -144,12 +143,12 @@ func initializeVertexBuffer() {
 		gl.Sizeiptr(buflen),
 		gl.Pointer(&vertexData[0]),
 		gl.STATIC_DRAW)
-	 gl.BindBuffer(gl.ARRAY_BUFFER, 0)
+	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
 	gl.GenBuffers(1, &indexBufferObject)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferObject)
 	buflen = unsafe.Sizeof(indexData[0]) * (uintptr)(len(indexData))
-	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, 
+	gl.BufferData(gl.ELEMENT_ARRAY_BUFFER,
 		gl.Sizeiptr(buflen),
 		gl.Pointer(&indexData[0]),
 		gl.STATIC_DRAW)
@@ -157,12 +156,12 @@ func initializeVertexBuffer() {
 }
 
 func initializeVertexArrayObjects() {
-		// Create the first VAO
+	// Create the first VAO
 	gl.GenVertexArrays(1, &vaoObject1)
 	gl.BindVertexArray(vaoObject1)
 
 	// Figure out the offset from the position data to the color data
-	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * numberOfVertices))
+	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0))*(uintptr)(3*numberOfVertices))
 
 	// Attach attribute pointers to the data
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
@@ -179,8 +178,8 @@ func initializeVertexArrayObjects() {
 	gl.GenVertexArrays(1, &vaoObject2)
 	gl.BindVertexArray(vaoObject2)
 
-	posDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)) * (uintptr)(3 * (numberOfVertices / 2)))
-	colorDataOffset = gl.Offset(colorDataOffset, unsafe.Sizeof(gl.Float(0)) * (uintptr)(4 * (numberOfVertices / 2)))
+	posDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0))*(uintptr)(3*(numberOfVertices/2)))
+	colorDataOffset = gl.Offset(colorDataOffset, unsafe.Sizeof(gl.Float(0))*(uintptr)(4*(numberOfVertices/2)))
 
 	// Use the same buffer object previously bound to GL_ARRAY_BUFFER
 	gl.EnableVertexAttribArray(0)
@@ -223,7 +222,7 @@ func display() {
 	gl.Clear(gl.COLOR_BUFFER_BIT)
 
 	gl.UseProgram(currentShader)
-	
+
 	gl.BindVertexArray(vaoObject1)
 	gl.Uniform3f(offsetUniform, 0.0, 0.0, 0.0)
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
@@ -241,7 +240,7 @@ func display() {
 // Called whenever the window is resized.  The new window size is
 // is given in pixels.  This is an opportunity to call glViewport
 // or glScissor to keep up with the change in size.
-func reshape(w, h int) {	
+func reshape(w, h int) {
 	theMatrix[0] = fFrustumScale / ((gl.Float)(w) / (gl.Float)(h))
 	theMatrix[5] = fFrustumScale
 
@@ -290,56 +289,54 @@ func main() {
 
 }
 
-
-
 var vertexData = []gl.Float{
 	//Object 1 positions
-	LEFT_EXTENT,	TOP_EXTENT,		REAR_EXTENT,
-	LEFT_EXTENT,	MIDDLE_EXTENT,	FRONT_EXTENT,
-	RIGHT_EXTENT,	MIDDLE_EXTENT,	FRONT_EXTENT,
-	RIGHT_EXTENT,	TOP_EXTENT,		REAR_EXTENT,
+	LEFT_EXTENT, TOP_EXTENT, REAR_EXTENT,
+	LEFT_EXTENT, MIDDLE_EXTENT, FRONT_EXTENT,
+	RIGHT_EXTENT, MIDDLE_EXTENT, FRONT_EXTENT,
+	RIGHT_EXTENT, TOP_EXTENT, REAR_EXTENT,
 
-	LEFT_EXTENT,	BOTTOM_EXTENT,	REAR_EXTENT,
-	LEFT_EXTENT,	MIDDLE_EXTENT,	FRONT_EXTENT,
-	RIGHT_EXTENT,	MIDDLE_EXTENT,	FRONT_EXTENT,
-	RIGHT_EXTENT,	BOTTOM_EXTENT,	REAR_EXTENT,
+	LEFT_EXTENT, BOTTOM_EXTENT, REAR_EXTENT,
+	LEFT_EXTENT, MIDDLE_EXTENT, FRONT_EXTENT,
+	RIGHT_EXTENT, MIDDLE_EXTENT, FRONT_EXTENT,
+	RIGHT_EXTENT, BOTTOM_EXTENT, REAR_EXTENT,
 
-	LEFT_EXTENT,	TOP_EXTENT,		REAR_EXTENT,
-	LEFT_EXTENT,	MIDDLE_EXTENT,	FRONT_EXTENT,
-	LEFT_EXTENT,	BOTTOM_EXTENT,	REAR_EXTENT,
+	LEFT_EXTENT, TOP_EXTENT, REAR_EXTENT,
+	LEFT_EXTENT, MIDDLE_EXTENT, FRONT_EXTENT,
+	LEFT_EXTENT, BOTTOM_EXTENT, REAR_EXTENT,
 
-	RIGHT_EXTENT,	TOP_EXTENT,		REAR_EXTENT,
-	RIGHT_EXTENT,	MIDDLE_EXTENT,	FRONT_EXTENT,
-	RIGHT_EXTENT,	BOTTOM_EXTENT,	REAR_EXTENT,
+	RIGHT_EXTENT, TOP_EXTENT, REAR_EXTENT,
+	RIGHT_EXTENT, MIDDLE_EXTENT, FRONT_EXTENT,
+	RIGHT_EXTENT, BOTTOM_EXTENT, REAR_EXTENT,
 
-	LEFT_EXTENT,	BOTTOM_EXTENT,	REAR_EXTENT,
-	LEFT_EXTENT,	TOP_EXTENT,		REAR_EXTENT,
-	RIGHT_EXTENT,	TOP_EXTENT,		REAR_EXTENT,
-	RIGHT_EXTENT,	BOTTOM_EXTENT,	REAR_EXTENT,
+	LEFT_EXTENT, BOTTOM_EXTENT, REAR_EXTENT,
+	LEFT_EXTENT, TOP_EXTENT, REAR_EXTENT,
+	RIGHT_EXTENT, TOP_EXTENT, REAR_EXTENT,
+	RIGHT_EXTENT, BOTTOM_EXTENT, REAR_EXTENT,
 
 	//Object 2 positions
-	TOP_EXTENT,		RIGHT_EXTENT,	REAR_EXTENT,
-	MIDDLE_EXTENT,	RIGHT_EXTENT,	FRONT_EXTENT,
-	MIDDLE_EXTENT,	LEFT_EXTENT,	FRONT_EXTENT,
-	TOP_EXTENT,		LEFT_EXTENT,	REAR_EXTENT,
+	TOP_EXTENT, RIGHT_EXTENT, REAR_EXTENT,
+	MIDDLE_EXTENT, RIGHT_EXTENT, FRONT_EXTENT,
+	MIDDLE_EXTENT, LEFT_EXTENT, FRONT_EXTENT,
+	TOP_EXTENT, LEFT_EXTENT, REAR_EXTENT,
 
-	BOTTOM_EXTENT,	RIGHT_EXTENT,	REAR_EXTENT,
-	MIDDLE_EXTENT,	RIGHT_EXTENT,	FRONT_EXTENT,
-	MIDDLE_EXTENT,	LEFT_EXTENT,	FRONT_EXTENT,
-	BOTTOM_EXTENT,	LEFT_EXTENT,	REAR_EXTENT,
+	BOTTOM_EXTENT, RIGHT_EXTENT, REAR_EXTENT,
+	MIDDLE_EXTENT, RIGHT_EXTENT, FRONT_EXTENT,
+	MIDDLE_EXTENT, LEFT_EXTENT, FRONT_EXTENT,
+	BOTTOM_EXTENT, LEFT_EXTENT, REAR_EXTENT,
 
-	TOP_EXTENT,		RIGHT_EXTENT,	REAR_EXTENT,
-	MIDDLE_EXTENT,	RIGHT_EXTENT,	FRONT_EXTENT,
-	BOTTOM_EXTENT,	RIGHT_EXTENT,	REAR_EXTENT,
-					
-	TOP_EXTENT,		LEFT_EXTENT,	REAR_EXTENT,
-	MIDDLE_EXTENT,	LEFT_EXTENT,	FRONT_EXTENT,
-	BOTTOM_EXTENT,	LEFT_EXTENT,	REAR_EXTENT,
-					
-	BOTTOM_EXTENT,	RIGHT_EXTENT,	REAR_EXTENT,
-	TOP_EXTENT,		RIGHT_EXTENT,	REAR_EXTENT,
-	TOP_EXTENT,		LEFT_EXTENT,	REAR_EXTENT,
-	BOTTOM_EXTENT,	LEFT_EXTENT,	REAR_EXTENT,
+	TOP_EXTENT, RIGHT_EXTENT, REAR_EXTENT,
+	MIDDLE_EXTENT, RIGHT_EXTENT, FRONT_EXTENT,
+	BOTTOM_EXTENT, RIGHT_EXTENT, REAR_EXTENT,
+
+	TOP_EXTENT, LEFT_EXTENT, REAR_EXTENT,
+	MIDDLE_EXTENT, LEFT_EXTENT, FRONT_EXTENT,
+	BOTTOM_EXTENT, LEFT_EXTENT, REAR_EXTENT,
+
+	BOTTOM_EXTENT, RIGHT_EXTENT, REAR_EXTENT,
+	TOP_EXTENT, RIGHT_EXTENT, REAR_EXTENT,
+	TOP_EXTENT, LEFT_EXTENT, REAR_EXTENT,
+	BOTTOM_EXTENT, LEFT_EXTENT, REAR_EXTENT,
 
 	//Object 1 colors
 	GREEN_COLOR.R, GREEN_COLOR.G, GREEN_COLOR.B, 1.0,
@@ -383,7 +380,6 @@ var vertexData = []gl.Float{
 	GREEN_COLOR.R, GREEN_COLOR.G, GREEN_COLOR.B, 1.0,
 	GREEN_COLOR.R, GREEN_COLOR.G, GREEN_COLOR.B, 1.0,
 	GREEN_COLOR.R, GREEN_COLOR.G, GREEN_COLOR.B, 1.0,
-
 
 	GREY_COLOR.R, GREY_COLOR.G, GREY_COLOR.B, 1.0,
 	GREY_COLOR.R, GREY_COLOR.G, GREY_COLOR.B, 1.0,

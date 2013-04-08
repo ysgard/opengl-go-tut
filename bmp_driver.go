@@ -5,8 +5,8 @@ bmp driver
 package main
 
 import (
-	"os"
 	"fmt"
+	"os"
 )
 
 func main() {
@@ -16,8 +16,5 @@ func main() {
 		return
 	}
 	b.Info()
-
-	
-
 
 }
