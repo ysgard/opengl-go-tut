@@ -28,5 +28,7 @@ func main() {
 	m3.PrintMat4("Matrix Mul")
 	m4 := m1.MulM(&m2).MulM(m3)
 	m4.PrintMat4("Chained Mul")
+	m5 := m4.Transpose()
+	m5.PrintMat4("Transpose of Last")
 
 }
