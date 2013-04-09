@@ -26,7 +26,7 @@ type Mat4 [4]Vec4
 
 // MulV - multiply receiving matrix by given Vec4 and return
 // the new Vec4
-func (m Mat4) MulV(v Vec4) *Vec4 {
+func (m *Mat4) MulV(v *Vec4) *Vec4 {
 	rv := Vec4{0.0, 0.0, 0.0, 0.0}
 	rv.x = m[0].x*v.x + m[1].x*v.y + m[2].x*v.z + m[3].x*v.w
 	rv.y = m[0].y*v.x + m[1].y*v.y + m[2].y*v.z + m[3].y*v.w
@@ -37,14 +37,39 @@ func (m Mat4) MulV(v Vec4) *Vec4 {
 
 // MulM - multiply receiving matrix by given Mat4 and return
 // the new Mat.
-func (m1 *Mat4) MulM(m2 Mul4) *Mat4 {
-	rm := IdentMat4()
-	rm[0] = Vec4{}
+func (m1 *Mat4) MulM(m2 *Mat4) *Mat4 {
+	var rm = Mat4{
+		{
+			m1[0].x*m2[0].x + m1[1].x*m2[0].y + m1[2].x*m2[0].z + m1[3].x*m2[0].w,
+			m1[0].y*m2[0].x + m1[1].y*m2[0].y + m1[2].y*m2[0].z + m1[3].y*m2[0].w,
+			m1[0].z*m2[0].x + m1[1].z*m2[0].y + m1[2].z*m2[0].z + m1[3].z*m2[0].w,
+			m1[0].w*m2[0].x + m1[1].w*m2[0].y + m1[2].w*m2[0].z + m1[3].w*m2[0].w,
+		},
+		{
+			m1[0].x*m2[1].x + m1[1].x*m2[1].y + m1[2].x*m2[1].z + m1[3].x*m2[1].w,
+			m1[0].y*m2[1].x + m1[1].y*m2[1].y + m1[2].y*m2[1].z + m1[3].y*m2[1].w,
+			m1[0].z*m2[1].x + m1[1].z*m2[1].y + m1[2].z*m2[1].z + m1[3].z*m2[1].w,
+			m1[0].w*m2[1].x + m1[1].w*m2[1].y + m1[2].w*m2[1].z + m1[3].w*m2[1].w,
+		},
+		{
+			m1[0].x*m2[2].x + m1[1].x*m2[2].y + m1[2].x*m2[2].z + m1[3].x*m2[2].w,
+			m1[0].y*m2[2].x + m1[1].y*m2[2].y + m1[2].y*m2[2].z + m1[3].y*m2[2].w,
+			m1[0].z*m2[2].x + m1[1].z*m2[2].y + m1[2].z*m2[2].z + m1[3].z*m2[2].w,
+			m1[0].w*m2[2].x + m1[1].w*m2[2].y + m1[2].w*m2[2].z + m1[3].w*m2[2].w,
+		},
+		{
+			m1[0].x*m2[3].x + m1[1].x*m2[3].y + m1[2].x*m2[3].z + m1[3].x*m2[3].w,
+			m1[0].y*m2[3].x + m1[1].y*m2[3].y + m1[2].y*m2[3].z + m1[3].y*m2[3].w,
+			m1[0].z*m2[3].x + m1[1].z*m2[3].y + m1[2].z*m2[3].z + m1[3].z*m2[3].w,
+			m1[0].w*m2[3].x + m1[1].w*m2[3].y + m1[2].w*m2[3].z + m1[3].w*m2[3].w,
+		},
+	}
+	return &rm
 }
 
 // ToArray - produce a []gl.Float array from a given struct.
 // Perhaps not necessary, doing &Mat4 should be sufficient!
-func (m Mat4) ToArray() []gl.Float {
+func (m *Mat4) ToArray() []gl.Float {
 	arr := make([]gl.Float, 16)
 	for i, vec := range m {
 		arr[i*4] = vec.x
@@ -124,7 +149,7 @@ func Clamp(fValue, fMinValue, fMaxValue gl.Float) gl.Float {
 
 // RotateX - returns a Mat4 representing a rotation matrix
 // for the angle given in degrees
-func RotateX(fAngDeg gl.Float) Mat4 {
+func RotateX(fAngDeg gl.Float) *Mat4 {
 	fAngRad := DegToRad(fAngDeg)
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
@@ -138,7 +163,7 @@ func RotateX(fAngDeg gl.Float) Mat4 {
 
 // RotateY - returns a Mat4 representing a rotation matrix
 // for the angle given in degree
-func RotateY(fAngDeg gl.Float) Mat4 {
+func RotateY(fAngDeg gl.Float) *Mat4 {
 	fAngRad := DegToRad(fAngDeg)
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
@@ -152,7 +177,7 @@ func RotateY(fAngDeg gl.Float) Mat4 {
 
 // RotateZ - returns a Mat4 representing a rotation matrix
 // for the angle given in degrees
-func RotateZ(fAngDeg gl.Float) Mat4 {
+func RotateZ(fAngDeg gl.Float) *Mat4 {
 	fAngRad := DegToRad(fAngDeg)
 	fCos := CosGL(fAngRad)
 	fSin := SinGL(fAngRad)
@@ -171,5 +196,17 @@ func DebugMat(m []gl.Float, s string) {
 	for i := 0; i < 4; i++ {
 		fmt.Fprintf(debugOut, "\t%f\t%f\t%f\t%f\n", m[i*4], m[i*4+1], m[i*4+2], m[i*4+3])
 	}
+	fmt.Fprintf(debugOut, "\t--------------------------------------------------------\n")
+}
+
+func (m *Mat4) PrintMat4(s string) {
+	if s == "" {
+		s = "Debugging Matrix"
+	}
+	fmt.Fprintf(debugOut, "\t-----------------------%s-------------------------\n", s)
+	fmt.Fprintf(debugOut, "\t%f\t%f\t%f\t%f\n", m[0].x, m[1].x, m[2].x, m[3].x)
+	fmt.Fprintf(debugOut, "\t%f\t%f\t%f\t%f\n", m[0].y, m[1].y, m[2].y, m[3].y)
+	fmt.Fprintf(debugOut, "\t%f\t%f\t%f\t%f\n", m[0].z, m[1].z, m[2].z, m[3].z)
+	fmt.Fprintf(debugOut, "\t%f\t%f\t%f\t%f\n", m[0].w, m[1].w, m[2].w, m[3].w)
 	fmt.Fprintf(debugOut, "\t--------------------------------------------------------\n")
 }
