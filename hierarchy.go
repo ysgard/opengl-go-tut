@@ -145,6 +145,8 @@ var indexData = []gl.Short{
 	22, 23, 20,
 }
 
+var gArmature Hierarchy
+
 const StandardAngleIncrement = 11.25
 const SmallAngleIncrement = 9.0
 
@@ -220,7 +222,7 @@ func (h *Hierarchy) Draw() {
 	modelToCameraStack.Translate(h.posBaseLeft)
 	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		gl.Pointer(modelToCameraStack.Top()))
+		(gl.Pointer)(modelToCameraStack.Top()))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
@@ -229,7 +231,7 @@ func (h *Hierarchy) Draw() {
 	modelToCameraStack.Translate(h.posBaseRight)
 	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		gl.Pointer(modelToCameraStack.Top()))
+		(gl.Pointer)(modelToCameraStack.Top()))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
@@ -292,6 +294,140 @@ func (h *Hierarchy) AdjFingerOpen(bIncrement bool) {
 		h.angFingerOpen -= SmallAngleIncrement
 	}
 	h.angFingerOpen = Clamp(h.angFingerOpen, 9.0, 180.0)
+}
+
+func (h *Hierarchy) WritePose() {
+	fmt.Fprintf(os.Stdout, "*** POSE SETTINGS ***\n")
+	fmt.Fprintf(os.Stdout, "angBase:\t%6.2f\n", h.angBase)
+	fmt.Fprintf(os.Stdout, "angUpperArm:\t%6.2f\n", h.angUpperArm)
+	fmt.Fprintf(os.Stdout, "angLowerArm:\t%6.2f\n", h.angLowerArm)
+	fmt.Fprintf(os.Stdout, "angWristPitch:\t%6.2f\n", h.angWristPitch)
+	fmt.Fprintf(os.Stdout, "angWristRoll:\t%6.2f\n", h.angWristRoll)
+	fmt.Fprintf(os.Stdout, "angFingerOpen:\t%6.2f\n", h.angFingerOpen)
+	fmt.Fprintf(os.Stdout, "\n")
+}
+
+func (h *Hierarchy) DrawFingers(modelToCameraStack *MatrixStack) {
+	// Draw left finger
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(hposLeftFinger)
+	modelToCameraStack.RotateY(h.angFingerOpen)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0,
+		h.widthFinger / 2.0, h.lenFinger / 2.0, 1.0})
+
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)),
+		gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	// Draw left lower finger
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger, 1.0})
+	modelToCameraStack.RotateY(-h.angLowerFinger)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
+		h.lenFinger / 2.0, 1.0})
+
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)),
+		gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+	modelToCameraStack.Pop()
+
+	modelToCameraStack.Pop()
+
+	// Draw right finger
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(h.posRightFinger)
+	modelToCameraStack.RotateY(-h.angFingerOpen)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
+		h.lenFinger / 2.0, 1.0})
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	// Draw right lower finger
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger, 1.0})
+	modelToCameraStack.RotateY(h.angLowerFinger)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
+		h.lenFinger / 2.0, 1.0})
+
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)),
+		gl.UNSIGNED_SHORT, nil)
+
+	modelToCameraStack.Pop()
+	modelToCameraStack.Pop()
+	modelToCameraStack.Pop()
+}
+
+func (h *Hierarchy) DrawWrist(modelToCameraStack *MatrixStack) {
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(h.posWrist)
+	modelToCameraStack.RotateZ(h.angWristRoll)
+	modelToCameraStack.RotateX(h.angWristPitch)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Scale(Vec4{h.widthWrist / 2.0, h.widthWrist / 2.0,
+		h.lenWrist / 2.0, 1.0})
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	h.DrawFingers(modelToCameraStack)
+	modelToCameraStack.Pop()
+}
+
+func (h *Hierarchy) DrawLowerArm(modelToCameraStack *MatrixStack) {
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(h.posLowerArm)
+	modelToCameraStack.RotateX(h.angLowerArm)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenLowerArm / 2.0, 1.0})
+	modelToCameraStack.Scale(Vec4{h.widthLowerArm / 2.0, h.widthLowerArm / 2.0,
+		h.lenLowerArm / 2.0, 1.0})
+
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	h.DrawWrist(modelToCameraStack)
+	modelToCameraStack.Pop()
+}
+
+func (h *Hierarchy) DrawUppperArm(modelToCameraStack *MatrixStack) {
+	modelToCameraStack.Push()
+	modelToCameraStack.RotateX(h.angUpperArm)
+
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.sizeUpperArm/2.0 - 1.0, 1.0})
+	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.sizeUpperArm / 2.0, 1.0})
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		(gl.Pointer)(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	h.DrawLowerArm(modelToCameraStack)
+	modelToCameraStack.Pop()
 }
 
 // Frustum scale
@@ -373,6 +509,18 @@ func Initialize() {
 
 	InitializeShaders()
 	InitializeVAO()
+
+	gl.Enable(gl.CULL_FACE)
+	gl.CullFace(gl.BACK)
+	gl.FrontFace(gl.CW)
+
+	gl.Enable(gl.DEPTH_TEST)
+	gl.DepthMask(gl.TRUE)
+	gl.DepthFunc(gl.LEQUAL)
+	gl.DepthRange(0.0, 1.0)
+
+	// Initialize object hierarchy
+	gArmature.Init()
 }
 
 func reshape(w, h int) {
@@ -391,8 +539,37 @@ func keyboard(key, state int) {
 		switch key {
 		case glfw.KeyEsc:
 			shutdown()
+			return
+		case 'a':
+			gArmature.AdjBase(true)
+		case 'd':
+			gArmature.AdjBase(false)
+		case 'w':
+			gArmature.AdjUpperArm(false)
+		case 's':
+			gArmature.AdjUpperArm(true)
+		case 'r':
+			gArmature.AdjLowerArm(false)
+		case 'f':
+			gArmature.AdjLowerArm(true)
+		case 't':
+			gArmature.AdjWristPitch(false)
+		case 'g':
+			gArmature.AdjWristPitch(true)
+		case 'z':
+			gArmature.AdjWristRoll(true)
+		case 'c':
+			gArmature.AdjWristRoll(false)
+		case 'q':
+			gArmature.AdjFingerOpen(true)
+		case 'e':
+			gArmature.AdjFingerOpen(false)
+		case glfw.KeyEnter:
+			gArmature.WritePose()
+		default:
+			return
+
 		}
-		return
 	}
 }
 
@@ -403,6 +580,16 @@ func shutdown() {
 	// gl.DeleteProgram(currentShader)
 	// gl.DeleteVertexArrays(1, &vao)
 	glfw.Terminate()
+}
+
+func display() {
+	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
+	gl.ClearDepth(1.0)
+	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+	gArmature.Draw()
+
+	glfw.SwapBuffers()
 }
 
 // Main loop
