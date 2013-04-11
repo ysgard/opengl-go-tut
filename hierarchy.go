@@ -145,22 +145,61 @@ var indexData = []gl.Short{
 	22, 23, 20,
 }
 
-// Matrix Stack
-type MatrixStack struct {
-	mCurrMat  *Mat4
-	mMatrices []*Mat4
+// Hierarchy of objects
+type Hierarchy struct {
+	posBase      Vec4
+	angBase      gl.Float
+	posBaseLeft  Vec4
+	posBaseRight Vec4
+	scaleBaseZ   gl.Float
+
+	angUpperArm   gl.Float
+	sizeUpperArm  gl.Float
+	posLowerArm   Vec4
+	angLowerArm   gl.Float
+	lenLowerArm   gl.Float
+	widthLowerArm gl.Float
+
+	posWrist      Vec4
+	angWristRoll  gl.Float
+	angWristPitch gl.Float
+	lenWrist      gl.Float
+	widthWrist    gl.Float
+
+	posLeftFinger  Vec4
+	posRightFinger Vec4
+	angFingerOpen  gl.Float
+	lenFinger      gl.Float
+	widthFinger    gl.Float
+	angLowerFinger gl.Float
 }
 
-func (m *MatrixStack) Init() {
-	m.mCurrMat = IdentMat4()
-}
+func (h *Hierarchy) Init() {
+	h.posBase = Vec4{3.0, -5.0, -40.0, 1.0}
+	h.angBase = -45.0
+	h.posBaseLeft = Vec4{2.0, 0.0, 0.0, 1.0}
+	h.posBaseRight = Vec4{-2.0, 0.0, 0.0, 1.0}
+	h.scaleBaseZ = 3.0
 
-func (m *MatrixStack) Top() *Mat4 {
-	return m.mCurrMat
-}
+	h.angUpperArm = -33.75
+	h.sizeUpperArm = 9.0
+	h.posLowerArm = Vec4{0.0, 0.0, 8.0, 1.0}
+	h.angLowerArm = 146.25
+	h.lenLowerArm = 5.0
+	h.widthLowerArm = 1.5
 
-func (m *MatrixStack) RotateX(fAngDeg gl.Float) {
-	m.mCurrMat = m.mCurrMat.Mul
+	h.posWrist = Vec4{0.0, 0.0, 5.0, 1.0}
+	h.angWristRoll = 0.0
+	h.angWristPitch = 67.5
+	h.lenWrist = 2.0
+	h.widthWrist = 2.0
+
+	h.posLeftFinger = Vec4{1.0, 0.0, 1.0, 1.0}
+	h.posRightFinger = Vec4{-1.0, 0.0, 1.0, 1.0}
+	h.angFingerOpen = 180.0
+	h.lenFinger = 2.0
+	h.widthFinger = 0.5
+	h.angLowerFinger = 45.0
 }
 
 // Frustum scale
