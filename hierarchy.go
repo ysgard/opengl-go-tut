@@ -145,6 +145,9 @@ var indexData = []gl.Short{
 	22, 23, 20,
 }
 
+const StandardAngleIncrement = 11.25
+const SmallAngleIncrement = 9.0
+
 // Hierarchy of objects
 type Hierarchy struct {
 	posBase      Vec4
@@ -200,6 +203,95 @@ func (h *Hierarchy) Init() {
 	h.lenFinger = 2.0
 	h.widthFinger = 0.5
 	h.angLowerFinger = 45.0
+}
+
+func (h *Hierarchy) Draw() {
+	var modelToCameraStack MatrixStack
+	modelToCameraStack.Init()
+
+	gl.UseProgram(theProgram)
+	gl.BindVertexArray(vao)
+
+	modelToCameraStack.Translate(h.posBase)
+	modelToCameraStack.RotateY(h.angBase)
+
+	// Draw left base
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(h.posBaseLeft)
+	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		gl.Pointer(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	// Draw Right Base
+	modelToCameraStack.Push()
+	modelToCameraStack.Translate(h.posBaseRight)
+	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
+	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
+		gl.Pointer(modelToCameraStack.Top()))
+	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
+	modelToCameraStack.Pop()
+
+	// Draw Main Arm
+	h.DrawUpperArm(&modelToCameraStack)
+
+	gl.BindVertexArray(0)
+	gl.UseProgram(0)
+}
+
+func (h *Hierarchy) AdjBase(bIncrement bool) {
+	if bIncrement == true {
+		h.angBase += StandardAngleIncrement
+	} else {
+		h.angUpperArm -= StandardAngleIncrement
+	}
+	h.angBase = ModGL(h.angBase, 360.0)
+}
+
+func (h *Hierarchy) AdjUpperArm(bIncrement bool) {
+	if bIncrement == true {
+		h.angUpperArm += StandardAngleIncrement
+	} else {
+		h.angUpperArm -= StandardAngleIncrement
+	}
+	h.angUpperArm = Clamp(h.angUpperArm, -90.0, 0)
+}
+
+func (h *Hierarchy) AdjLowerArm(bIncrement bool) {
+	if bIncrement == true {
+		h.angLowerArm += StandardAngleIncrement
+	} else {
+		h.angLowerArm -= StandardAngleIncrement
+	}
+	h.angLowerArm = Clamp(h.angLowerArm, 0, 146.25)
+}
+
+func (h *Hierarchy) AdjWristPitch(bIncrement bool) {
+	if bIncrement == true {
+		h.angWristPitch += StandardAngleIncrement
+	} else {
+		h.angWristPitch -= StandardAngleIncrement
+	}
+	h.angWristPitch = Clamp(h.angWristPitch, 0, 90.0)
+}
+
+func (h *Hierarchy) AdjWristRoll(bIncrement bool) {
+	if bIncrement == true {
+		h.angWristRoll += StandardAngleIncrement
+	} else {
+		h.angWristRoll -= StandardAngleIncrement
+	}
+	h.angWristRoll = ModGL(h.angWristRoll, 360.0)
+}
+
+func (h *Hierarchy) AdjFingerOpen(bIncrement bool) {
+	if bIncrement == true {
+		h.angFingerOpen += SmallAngleIncrement
+	} else {
+		h.angFingerOpen -= SmallAngleIncrement
+	}
+	h.angFingerOpen = Clamp(h.angFingerOpen, 9.0, 180.0)
 }
 
 // Frustum scale
