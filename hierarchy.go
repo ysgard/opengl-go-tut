@@ -4,7 +4,7 @@ import (
 	"fmt"
 	gl "github.com/chsc/gogl/gl33"
 	"github.com/go-gl/glfw"
-	"math"
+	//"math"
 	"os"
 	"runtime"
 	"time"
@@ -22,12 +22,12 @@ var theProgram gl.Uint
 var positionAttrib gl.Uint
 var colorAttrib gl.Uint
 
-var modelToCameraMatrixUnif gl.Uint
-var cameraToClipMatrixUnif gl.Uint
+var modelToCameraMatrixUnif gl.Int
+var cameraToClipMatrixUnif gl.Int
 
 var cameraToClipMatrix Mat4
 
-var shaders = []string{
+var shaderFiles = []string{
 	"shaders/PosColorLocalTransform.vert",
 	"shaders/ColorPassthrough.frag",
 }
@@ -152,27 +152,27 @@ const SmallAngleIncrement = 9.0
 
 // Hierarchy of objects
 type Hierarchy struct {
-	posBase      Vec4
+	posBase      *Vec4
 	angBase      gl.Float
-	posBaseLeft  Vec4
-	posBaseRight Vec4
+	posBaseLeft  *Vec4
+	posBaseRight *Vec4
 	scaleBaseZ   gl.Float
 
 	angUpperArm   gl.Float
 	sizeUpperArm  gl.Float
-	posLowerArm   Vec4
+	posLowerArm   *Vec4
 	angLowerArm   gl.Float
 	lenLowerArm   gl.Float
 	widthLowerArm gl.Float
 
-	posWrist      Vec4
+	posWrist      *Vec4
 	angWristRoll  gl.Float
 	angWristPitch gl.Float
 	lenWrist      gl.Float
 	widthWrist    gl.Float
 
-	posLeftFinger  Vec4
-	posRightFinger Vec4
+	posLeftFinger  *Vec4
+	posRightFinger *Vec4
 	angFingerOpen  gl.Float
 	lenFinger      gl.Float
 	widthFinger    gl.Float
@@ -180,27 +180,27 @@ type Hierarchy struct {
 }
 
 func (h *Hierarchy) Init() {
-	h.posBase = Vec4{3.0, -5.0, -40.0, 1.0}
+	h.posBase = &Vec4{3.0, -5.0, -40.0, 1.0}
 	h.angBase = -45.0
-	h.posBaseLeft = Vec4{2.0, 0.0, 0.0, 1.0}
-	h.posBaseRight = Vec4{-2.0, 0.0, 0.0, 1.0}
+	h.posBaseLeft = &Vec4{2.0, 0.0, 0.0, 1.0}
+	h.posBaseRight = &Vec4{-2.0, 0.0, 0.0, 1.0}
 	h.scaleBaseZ = 3.0
 
 	h.angUpperArm = -33.75
 	h.sizeUpperArm = 9.0
-	h.posLowerArm = Vec4{0.0, 0.0, 8.0, 1.0}
+	h.posLowerArm = &Vec4{0.0, 0.0, 8.0, 1.0}
 	h.angLowerArm = 146.25
 	h.lenLowerArm = 5.0
 	h.widthLowerArm = 1.5
 
-	h.posWrist = Vec4{0.0, 0.0, 5.0, 1.0}
+	h.posWrist = &Vec4{0.0, 0.0, 5.0, 1.0}
 	h.angWristRoll = 0.0
 	h.angWristPitch = 67.5
 	h.lenWrist = 2.0
 	h.widthWrist = 2.0
 
-	h.posLeftFinger = Vec4{1.0, 0.0, 1.0, 1.0}
-	h.posRightFinger = Vec4{-1.0, 0.0, 1.0, 1.0}
+	h.posLeftFinger = &Vec4{1.0, 0.0, 1.0, 1.0}
+	h.posRightFinger = &Vec4{-1.0, 0.0, 1.0, 1.0}
 	h.angFingerOpen = 180.0
 	h.lenFinger = 2.0
 	h.widthFinger = 0.5
@@ -220,18 +220,18 @@ func (h *Hierarchy) Draw() {
 	// Draw left base
 	modelToCameraStack.Push()
 	modelToCameraStack.Translate(h.posBaseLeft)
-	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
+	modelToCameraStack.Scale(&Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
 	// Draw Right Base
 	modelToCameraStack.Push()
 	modelToCameraStack.Translate(h.posBaseRight)
-	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
+	modelToCameraStack.Scale(&Vec4{1.0, 1.0, h.scaleBaseZ, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
@@ -310,32 +310,32 @@ func (h *Hierarchy) WritePose() {
 func (h *Hierarchy) DrawFingers(modelToCameraStack *MatrixStack) {
 	// Draw left finger
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(hposLeftFinger)
+	modelToCameraStack.Translate(h.posLeftFinger)
 	modelToCameraStack.RotateY(h.angFingerOpen)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
-	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0,
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(&Vec4{h.widthFinger / 2.0,
 		h.widthFinger / 2.0, h.lenFinger / 2.0, 1.0})
 
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)),
 		gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
 	// Draw left lower finger
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger, 1.0})
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenFinger, 1.0})
 	modelToCameraStack.RotateY(-h.angLowerFinger)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
-	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(&Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
 		h.lenFinger / 2.0, 1.0})
 
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)),
 		gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
@@ -349,26 +349,26 @@ func (h *Hierarchy) DrawFingers(modelToCameraStack *MatrixStack) {
 	modelToCameraStack.RotateY(-h.angFingerOpen)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
-	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(&Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
 		h.lenFinger / 2.0, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
 	// Draw right lower finger
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger, 1.0})
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenFinger, 1.0})
 	modelToCameraStack.RotateY(h.angLowerFinger)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
-	modelToCameraStack.Scale(Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenFinger / 2.0, 1.0})
+	modelToCameraStack.Scale(&Vec4{h.widthFinger / 2.0, h.widthFinger / 2.0,
 		h.lenFinger / 2.0, 1.0})
 
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)),
 		gl.UNSIGNED_SHORT, nil)
 
@@ -384,10 +384,10 @@ func (h *Hierarchy) DrawWrist(modelToCameraStack *MatrixStack) {
 	modelToCameraStack.RotateX(h.angWristPitch)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Scale(Vec4{h.widthWrist / 2.0, h.widthWrist / 2.0,
+	modelToCameraStack.Scale(&Vec4{h.widthWrist / 2.0, h.widthWrist / 2.0,
 		h.lenWrist / 2.0, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
@@ -401,12 +401,12 @@ func (h *Hierarchy) DrawLowerArm(modelToCameraStack *MatrixStack) {
 	modelToCameraStack.RotateX(h.angLowerArm)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.lenLowerArm / 2.0, 1.0})
-	modelToCameraStack.Scale(Vec4{h.widthLowerArm / 2.0, h.widthLowerArm / 2.0,
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.lenLowerArm / 2.0, 1.0})
+	modelToCameraStack.Scale(&Vec4{h.widthLowerArm / 2.0, h.widthLowerArm / 2.0,
 		h.lenLowerArm / 2.0, 1.0})
 
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
@@ -414,15 +414,15 @@ func (h *Hierarchy) DrawLowerArm(modelToCameraStack *MatrixStack) {
 	modelToCameraStack.Pop()
 }
 
-func (h *Hierarchy) DrawUppperArm(modelToCameraStack *MatrixStack) {
+func (h *Hierarchy) DrawUpperArm(modelToCameraStack *MatrixStack) {
 	modelToCameraStack.Push()
 	modelToCameraStack.RotateX(h.angUpperArm)
 
 	modelToCameraStack.Push()
-	modelToCameraStack.Translate(Vec4{0.0, 0.0, h.sizeUpperArm/2.0 - 1.0, 1.0})
-	modelToCameraStack.Scale(Vec4{1.0, 1.0, h.sizeUpperArm / 2.0, 1.0})
+	modelToCameraStack.Translate(&Vec4{0.0, 0.0, h.sizeUpperArm/2.0 - 1.0, 1.0})
+	modelToCameraStack.Scale(&Vec4{1.0, 1.0, h.sizeUpperArm / 2.0, 1.0})
 	gl.UniformMatrix4fv(modelToCameraMatrixUnif, 1, gl.FALSE,
-		(gl.Pointer)(modelToCameraStack.Top()))
+		&(modelToCameraStack.Top()[0].x))
 	gl.DrawElements(gl.TRIANGLES, (gl.Sizei)(len(indexData)), gl.UNSIGNED_SHORT, nil)
 	modelToCameraStack.Pop()
 
@@ -446,8 +446,8 @@ func InitializeVAO() {
 	bufferLen := unsafe.Sizeof(gl.Float(0)) * (uintptr)(len(vertexData))
 	gl.BufferData(
 		gl.ARRAY_BUFFER,
-		gl.Sizei(bufferLen),
-		&vertexData[0],
+		(gl.Sizeiptr)(bufferLen),
+		(gl.Pointer)(&vertexData[0]),
 		gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ARRAY_BUFFER, 0)
 
@@ -456,16 +456,16 @@ func InitializeVAO() {
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBufferObject)
 	bufferLen = unsafe.Sizeof(gl.Short(0)) * (uintptr)(len(indexData))
 	gl.BufferData(
-		gl.ELEMENT_ARRAY_DATA,
-		gl.Sizei(bufferLen),
-		&indexData[0],
+		gl.ELEMENT_ARRAY_BUFFER,
+		gl.Sizeiptr(bufferLen),
+		gl.Pointer(&indexData[0]),
 		gl.STATIC_DRAW)
 	gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0)
 
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
 
-	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0)*3*numberOfVertices))
+	colorDataOffset := gl.Offset(nil, unsafe.Sizeof(gl.Float(0*3*numberOfVertices)))
 	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBufferObject)
 	gl.EnableVertexAttribArray(positionAttrib)
 	gl.EnableVertexAttribArray(colorAttrib)
@@ -481,11 +481,11 @@ func InitializeShaders() {
 
 	// Shader program creation, bind attributes
 	theProgram = CreateShaderProgram(shaderFiles)
-	positionAttrib = gl.GetAttribLocation(theProgram, "position")
-	colorAttrib = gl.GetAttribLocation(theProgram, "color")
+	positionAttrib = gl.Uint(gl.GetAttribLocation(theProgram, gl.GLString("position")))
+	colorAttrib = gl.Uint(gl.GetAttribLocation(theProgram, gl.GLString("color")))
 
-	modelToCameraMatrixUnif = gl.GetUniformLocation(theProgram, "modelToCameraMatrix")
-	cameraToClipMatrixUnif = gl.GetUniformLocation(theProgram, "cameraToClipMatrix")
+	modelToCameraMatrixUnif = (gl.Int)(gl.GetUniformLocation(theProgram, gl.GLString("modelToCameraMatrix")))
+	cameraToClipMatrixUnif = (gl.Int)(gl.GetUniformLocation(theProgram, gl.GLString("cameraToClipMatrix")))
 
 	fzNear := gl.Float(1.0)
 	fzFar := gl.Float(100.0)
@@ -497,8 +497,31 @@ func InitializeShaders() {
 	cameraToClipMatrix[3].z = (2 * fzFar * fzNear) / (fzNear - fzFar)
 
 	gl.UseProgram(theProgram)
-	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0])
+	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0].x)
 	gl.UseProgram(0)
+}
+
+func glfwInitWindow() {
+	// Initialize glfw
+	glfw.Init()
+	// Set some basic params or the window
+	glfw.OpenWindowHint(glfw.FsaaSamples, 4) // 4x antialiasing
+	glfw.OpenWindowHint(glfw.OpenGLVersionMajor, 3)
+	glfw.OpenWindowHint(glfw.OpenGLVersionMinor, 2)
+	// Core, not compat
+	glfw.OpenWindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
+
+	// Open a window and initialize its OpenGL content
+	if err := glfw.OpenWindow(Width, Height, 0, 0, 0, 0, 32, 0, glfw.Windowed); err != nil {
+		fmt.Fprintf(os.Stderr, "glfw.OpenWindow failed: %s\n", err)
+		os.Exit(1)
+	}
+
+	// Set the Window title
+	glfw.SetWindowTitle(Title)
+
+	// Make sure we can capture the escape key
+	glfw.Enable(glfw.StickyKeys)
 }
 
 func Initialize() {
@@ -527,7 +550,7 @@ func reshape(w, h int) {
 	cameraToClipMatrix[0].x = fFrustumScale * (gl.Float)(h) / (gl.Float)(w)
 	cameraToClipMatrix[1].y = fFrustumScale
 
-	gl.UseProgram(currentShader)
+	gl.UseProgram(theProgram)
 	gl.UniformMatrix4fv(cameraToClipMatrixUnif, 1, gl.FALSE, &cameraToClipMatrix[0].x)
 	gl.UseProgram(0)
 
@@ -540,29 +563,29 @@ func keyboard(key, state int) {
 		case glfw.KeyEsc:
 			shutdown()
 			return
-		case 'a':
+		case 65: // a
 			gArmature.AdjBase(true)
-		case 'd':
+		case 68: // d
 			gArmature.AdjBase(false)
-		case 'w':
+		case 87: // w
 			gArmature.AdjUpperArm(false)
-		case 's':
+		case 83: // s
 			gArmature.AdjUpperArm(true)
-		case 'r':
+		case 82: // r
 			gArmature.AdjLowerArm(false)
-		case 'f':
+		case 70: // f
 			gArmature.AdjLowerArm(true)
-		case 't':
+		case 84: // t
 			gArmature.AdjWristPitch(false)
-		case 'g':
+		case 71: // g
 			gArmature.AdjWristPitch(true)
-		case 'z':
+		case 90: // z
 			gArmature.AdjWristRoll(true)
-		case 'c':
+		case 67: // c
 			gArmature.AdjWristRoll(false)
-		case 'q':
+		case 81: // q
 			gArmature.AdjFingerOpen(true)
-		case 'e':
+		case 69: // e
 			gArmature.AdjFingerOpen(false)
 		case glfw.KeyEnter:
 			gArmature.WritePose()
@@ -607,8 +630,8 @@ func main() {
 
 	// Main loop.  Run until it dies, or we find someone better.
 	for glfw.WindowParam(glfw.Opened) == 1 {
-		fmt.Fprintf(os.Stdout, "*** Frame: %f ***\n", glfw.Time())
-		time.Sleep(time.Millisecond * 100)
+		//fmt.Fprintf(os.Stdout, "*** Frame: %f ***\n", glfw.Time())
+		time.Sleep(time.Millisecond)
 		display()
 	}
 
