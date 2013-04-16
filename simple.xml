@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fleet name="10th expeditionary">
+	<ship id="bc.bastion">
+		<name>U.S.S. Bastion</name>
+		<type id="bc" explicit="battlecruiser">BC</type>
+		<class>Bastion</class>
+		<turret arc="FA">
+			<weapon number="3">
+				<type>KKS</type>
+			</weapon>
+		</turret>
+		<turret arc="RA">
+			<weapon number="2">
+				<type>KKS</type>
+			</weapon>
+		</turret>
+		<bay arc="LS" type="missile">
+			<missile>anti-ship</missile>
+			<count>24</count>
+		</bay>
+		<bay arc="RS" type="missile">
+			<missile>anti-ship</missile>
+			<count>24</count>
+		</bay>
+		<bombard>
+			<range unit="hexes">20</range>
+			<type>projectile</type>
+		</bombard>
+		<HP>1000</HP>
+	</ship>
+	<ship id="ff.farragut">
+		<name>U.S.S. Brunswick</name>
+		<type id="ff" explicit="frigate">FF</type>
+		<class>Farragut</class>
+		<turrent arc="FX">
+			<weapon number="1">
+				<type>meson</type>
+			</weapon>
+		</turrent>
+		<HP>50</HP>
+	</ship>
+	<ship id="es.clancy">
+		<name>U.S.S. Rainbow Six</name>
+		<type id="es" explicit="escort">ES</type>
+		<class>Clancy</class>
+		<bay arc="360" type="missile">	
+			<missile>point-defense</missile>
+			<count>12</count>
+		</bay>
+		<EW>true</EW>
+		<HP>20</HP>
+	</ship>
+</fleet>
