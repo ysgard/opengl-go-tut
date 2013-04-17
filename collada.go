@@ -1,5 +1,5 @@
 // collada.go
-// 
+//
 // A simple COLLADA file loader used to provide simple meshes from COLLADA
 // files.  Over time, I may expand this to import more data from the file,
 // but for now, we only import meshes.
@@ -22,45 +22,45 @@ import (
 
 type Collada struct {
 	//Id                    string `xml:"attr"`
-	Version               string `xml:"attr"`
-	Library_Geometries    LibraryGeometries
-	Library_Visual_Scenes LibraryVisualScenes
+	Version               string              `xml:"version,attr"`
+	Library_Geometries    LibraryGeometries   `xml:"library_geometries"`
+	Library_Visual_Scenes LibraryVisualScenes `xml:"library_visual_scenes"`
 }
 
 type LibraryGeometries struct {
-	XMLName  xml.Name `xml:"library_geometries"`
-	Geometry []Geometry
+	XMLName  xml.Name   `xml:"library_geometries"`
+	Geometry []Geometry `xml:"geometry"`
 }
 
 type Geometry struct {
 	XMLName xml.Name `xml:"geometry"`
-	Id      string   `xml:"attr"`
-	Mesh    Mesh
+	Id      string   `xml:"id,attr"`
+	Mesh    Mesh     `xml:"mesh"`
 }
 
 type Mesh struct {
 	XMLName  xml.Name `xml:"mesh"`
-	Source   []Source
+	Source   []Source `xml:"source"`
 	Polylist Polylist
 }
 
 type Source struct {
 	XMLName     xml.Name   `xml:"source"`
-	Id          string     `xml:"attr"`
+	Id          string     `xml:"id,attr"`
 	Float_array FloatArray `xml:"float_array"`
 }
 
 type FloatArray struct {
 	XMLName xml.Name `xml:"float_array"`
-	Id      string   `xml:"attr"`
+	Id      string   `xml:"id,attr"`
 	CDATA   string   `xml:"chardata"`
 	Count   string   `xml:"attr"`
 }
 
 type Polylist struct {
 	XMLName xml.Name `xml:"polylist"`
-	Id      string   `xml:"attr"`
-	Count   string   `xml:"attr"`
+	Id      string   `xml:"id,attr"`
+	Count   string   `xml:"count,attr"`
 
 	// List of integers, each specifying the number of vertices for one polygon
 	VCount string `xml:"vcount"`
@@ -70,8 +70,8 @@ type Polylist struct {
 }
 
 type LibraryVisualScenes struct {
-	XMLName     xml.Name `xml:"library_visual_scenes"`
-	VisualScene VisualScene
+	XMLName     xml.Name    `xml:"library_visual_scenes"`
+	VisualScene VisualScene `xml:"visual_scene"`
 }
 
 type VisualScene struct {
