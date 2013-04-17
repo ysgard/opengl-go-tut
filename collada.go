@@ -53,8 +53,8 @@ type Source struct {
 type FloatArray struct {
 	XMLName xml.Name `xml:"float_array"`
 	Id      string   `xml:"id,attr"`
-	CDATA   string   `xml:"chardata"`
-	Count   string   `xml:"attr"`
+	CDATA   string   `xml:",chardata"`
+	Count   string   `xml:"count,attr"`
 }
 
 type Polylist struct {
