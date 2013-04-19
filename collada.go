@@ -51,9 +51,10 @@ type Source struct {
 }
 
 type Input struct {
-	Semantic string `xml:"semantic,attr"`
-	Source   string `xml:"source,attr"`
-	Offset   string `sml:"offset,attr"`
+	XMLName  xml.Name `xml:"input"`
+	Semantic string   `xml:"semantic,attr"`
+	Source   string   `xml:"source,attr"`
+	Offset   string   `xml:"offset,attr"`
 }
 
 type FloatArray struct {
@@ -145,4 +146,31 @@ func (i *Input) Debug() {
 	fmt.Fprintf(os.Stdout, "* Semantic: %s\n", i.Semantic)
 	fmt.Fprintf(os.Stdout, "* Source: %s\n", i.Source)
 	fmt.Fprintf(os.Stdout, "* Offset: %s\n", i.Offset)
+}
+
+// Given a filename, attempts to load the Collada data
+// from that file.  It does not post-process the data.
+func ReadColladaFile(filename string) (*Collada, error) {
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	filelen := fi.Size()
+	buf := make([]byte, filelen)
+	read, err := file.Read(buf)
+	if read != int(filelen) || err != nil {
+		return nil, err
+	}
+
+	c := new(Collada)
+	err = xml.Unmarshal(buf, c)
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
