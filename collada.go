@@ -50,6 +50,12 @@ type Source struct {
 	Float_array FloatArray `xml:"float_array"`
 }
 
+type Input struct {
+	Semantic string `xml:"semantic,attr"`
+	Source   string `xml:"source,attr"`
+	Offset   string `sml:"offset,attr"`
+}
+
 type FloatArray struct {
 	XMLName xml.Name `xml:"float_array"`
 	Id      string   `xml:"id,attr"`
@@ -61,6 +67,7 @@ type Polylist struct {
 	XMLName xml.Name `xml:"polylist"`
 	Id      string   `xml:"id,attr"`
 	Count   string   `xml:"count,attr"`
+	Input   []Input  `xml:"input"`
 
 	// List of integers, each specifying the number of vertices for one polygon
 	VCount string `xml:"vcount"`
@@ -128,4 +135,14 @@ func (p *Polylist) Debug() {
 	fmt.Fprintf(os.Stdout, "* Count: %s\n", p.Count)
 	fmt.Fprintf(os.Stdout, "* VCount: %s\n", p.VCount)
 	fmt.Fprintf(os.Stdout, "* P: %s\n", p.P)
+	for _, i := range p.Input {
+		i.Debug()
+	}
+}
+
+func (i *Input) Debug() {
+	fmt.Fprintf(os.Stdout, "*** Input ***\n")
+	fmt.Fprintf(os.Stdout, "* Semantic: %s\n", i.Semantic)
+	fmt.Fprintf(os.Stdout, "* Source: %s\n", i.Source)
+	fmt.Fprintf(os.Stdout, "* Offset: %s\n", i.Offset)
 }

@@ -29,6 +29,6 @@ func BuildModel(filename string) *Collada {
 }
 
 func main() {
-	c := BuildModel("world_tut/cone.dae")
+	c := BuildModel("world_tut/unitcone.dae")
 	c.Debug()
 }
