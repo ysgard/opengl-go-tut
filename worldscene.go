@@ -45,6 +45,22 @@ func InitializeProgram() {
 	})
 }
 
-func CalcLookAtMatrix(cameraPt, loopPt, upPt *Vec4) {
-	
+func CalcLookAtMatrix(cameraPt, lookPt, upPt *Vec3) *Mat4 {
+	lookDir := (lookPt.Sub(cameraPt)).Normalize()
+	upDir := upPt.Normalize()
+
+	rightDir := (lookDir.Cross(upDir)).Normalize()
+	perpUpDir := rightDir.Cross(lookDir)
+
+	rotMat := IdentMat4()
+	rotMat[0] = rightDir.V3to4(0.0)
+	rotMat[1] = perpUpDir.V3to4(0.0)
+	rotMat[2] = (lookDir.MulS(-1.0)).V3to4(0.0)
+
+	rotMat = rotMat.Transpose()
+
+	transMat = IdentMat4()
+	transMat[3] = (cameraPt.MulS(-1.0)).V3to4(1.0)
+
+	return rotMat.MulM(transMat)
 }
