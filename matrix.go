@@ -41,17 +41,73 @@ const Pi = (gl.Float)(math.Pi)
 // Change this to change where debug messages get sent
 var debugOut = os.Stderr
 
+// ******************************* //
+// *     VEC3 - A 3x1 vector     * //
+// ******************************* //
+
 // Struct that kinda, sorta represents a glm/glsl vector
 type Vec3 struct {
 	x, y, z gl.Float
 }
+
+// Normalize - Vec3 version
+func (v *Vec3) Normalize() {
+	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
+	v.x = v.x / lenv
+	v.y = v.y / lenv
+	v.z = v.z / lenv
+}
+
+// Cross product - Vec3 version, u.Cross(v) = u x v
+func (u *Vec3) Cross(v *Vec3) *Vec3 {
+	s := Vec3{
+		u.y*v.z - u.z*v.y,
+		u.z*v.x - u.x*v.z,
+		u.x*v.y - u.y*v.x,
+	}
+	return &s
+}
+
+// Add - Add together two Vec3's - u.Add(v)
+func (u *Vec3) Add(v *Vec3) *Vec3 {
+	s := Vec3{
+		u.x + v.x,
+		u.y + v.y,
+		u.z + v.z,
+	}
+	return &s
+}
+
+// Sub - Subtract two Vec3's - u.Sub(v)
+func (u *Vec3) Sub(v *Vec3) *Vec3 {
+	s := Vec3{
+		u.x - v.x,
+		u.y - v.y,
+		u.z - v.z,
+	}
+	return &s
+}
+
+// Mul - Multiply vector by a scalar
+func (u *Vec3) MulS(f gl.Float) *Vec3 {
+	s := Vec3{
+		u.x * f,
+		u.y * f,
+		u.z * f,
+	}
+	return &s
+}
+
+// ******************************* //
+// *     VEC4 - A 4x1 vector     * //
+// ******************************* //
 
 type Vec4 struct {
 	x, y, z, w gl.Float
 }
 
 // Vec4 from a Vec3
-func (v3 *Vec3) V34(f gl.Float) *Vec4 {
+func (v3 *Vec3) V3to4(f gl.Float) *Vec4 {
 	v4 = Vec4{
 		v3.x,
 		v3.y,
@@ -60,6 +116,18 @@ func (v3 *Vec3) V34(f gl.Float) *Vec4 {
 	}
 	return &v4
 }
+
+// Normalize - normalizes a vector, doesn't include w
+func (v *Vec4) Normalize() {
+	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
+	v.x = v.x / lenv
+	v.y = v.y / lenv
+	v.z = v.z / lenv
+}
+
+// ******************************* //
+// *     MAT4 - A 4x4 Matrix     * //
+// ******************************* //
 
 // Struct that kinda, sorta represents a glm/glsl matrix
 type Mat4 [4]Vec4
@@ -200,31 +268,88 @@ func (m *Mat4) Copy() *Mat4 {
 	return copy
 }
 
-// Normalize - normalizes a vector, doesn't include w
-func (v *Vec4) Normalize() {
-	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
-	v.x = v.x / lenv
-	v.y = v.y / lenv
-	v.z = v.z / lenv
+// RotateX - returns a Mat4 representing a rotation matrix
+// for the angle given in degrees
+func RotateX(fAngDeg gl.Float) *Mat4 {
+	fAngRad := DegToRad(fAngDeg)
+	fCos := CosGL(fAngRad)
+	fSin := SinGL(fAngRad)
+	theMat := IdentMat4()
+	theMat[1].y = fCos
+	theMat[2].y = -fSin
+	theMat[1].z = fSin
+	theMat[2].z = fCos
+	return theMat
 }
 
-// Normalize - Vec3 version
-func (v *Vec3) Normalize() {
-	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
-	v.x = v.x / lenv
-	v.y = v.y / lenv
-	v.z = v.z / lenv
+// RotateY - returns a Mat4 representing a rotation matrix
+// for the angle given in degree
+func RotateY(fAngDeg gl.Float) *Mat4 {
+	fAngRad := DegToRad(fAngDeg)
+	fCos := CosGL(fAngRad)
+	fSin := SinGL(fAngRad)
+	theMat := IdentMat4()
+	theMat[0].x = fCos
+	theMat[2].x = fSin
+	theMat[0].z = -fSin
+	theMat[2].z = fCos
+	return theMat
 }
 
-// Cross product - Vec3 version, u.Cross(v) = u x v
-func (u *Vec3) Cross(v *Vec3) *Vec3 {
-	s := Vec3{
-		u.y*v.z - u.z*v.y,
-		u.z*v.x - u.x*v.z,
-		u.x*v.y - u.y*v.x,
+// RotateZ - returns a Mat4 representing a rotation matrix
+// for the angle given in degrees
+func RotateZ(fAngDeg gl.Float) *Mat4 {
+	fAngRad := DegToRad(fAngDeg)
+	fCos := CosGL(fAngRad)
+	fSin := SinGL(fAngRad)
+	theMat := IdentMat4()
+	theMat[0].x = fCos
+	theMat[1].x = -fSin
+	theMat[0].y = fSin
+	theMat[1].y = fCos
+	return theMat
+}
+
+func (m *Mat4) Print(s string) {
+	if s == "" {
+		s = "Debugging Matrix"
 	}
-	return &s
+	slen := len(s) + 2
+
+	var dashes string
+	if (58-slen)&1 == 1 {
+		// odd-string
+		dashes = strings.Repeat("-", (58-slen-1)/2) + " " +
+			s + " " + strings.Repeat("-", ((58-slen-1)/2))
+	} else {
+		// even-string
+		dashes = strings.Repeat("-", (58-slen)/2) + " " +
+			s + " " + strings.Repeat("-", (58-slen)/2-1)
+	}
+	fmt.Fprintf(debugOut, "%s\n", dashes)
+	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n", m[0].x, m[1].x, m[2].x, m[3].x)
+	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n", m[0].y, m[1].y, m[2].y, m[3].y)
+	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n", m[0].z, m[1].z, m[2].z, m[3].z)
+	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n\n", m[0].w, m[1].w, m[2].w, m[3].w)
+	//fmt.Fprintf(debugOut, "\t------------------------------------------------------------\n")
 }
+
+// Inverse - returns a new Mat4 representing the inverse of the Mat4
+func (m *Mat4) Inverse() *Mat4 {
+	// Convert Mat4 to an array of floats
+	inArray := m.ToArray()
+	if outArray, err := Invert(inArray); err == nil {
+		// Craft Mat4 from the array of floats
+		outMat, _ := FromArray(outArray)
+		return outMat
+	} else {
+		return nil
+	}
+}
+
+// ************************************ //
+// *     OpenGL utility functions     * //
+// ************************************ //
 
 // ModGL - Take two gl.Floats and return remainder as a gl.Float
 func ModGL(a, b gl.Float) gl.Float {
@@ -278,48 +403,6 @@ func Clamp(fValue, fMinValue, fMaxValue gl.Float) gl.Float {
 	}
 }
 
-// RotateX - returns a Mat4 representing a rotation matrix
-// for the angle given in degrees
-func RotateX(fAngDeg gl.Float) *Mat4 {
-	fAngRad := DegToRad(fAngDeg)
-	fCos := CosGL(fAngRad)
-	fSin := SinGL(fAngRad)
-	theMat := IdentMat4()
-	theMat[1].y = fCos
-	theMat[2].y = -fSin
-	theMat[1].z = fSin
-	theMat[2].z = fCos
-	return theMat
-}
-
-// RotateY - returns a Mat4 representing a rotation matrix
-// for the angle given in degree
-func RotateY(fAngDeg gl.Float) *Mat4 {
-	fAngRad := DegToRad(fAngDeg)
-	fCos := CosGL(fAngRad)
-	fSin := SinGL(fAngRad)
-	theMat := IdentMat4()
-	theMat[0].x = fCos
-	theMat[2].x = fSin
-	theMat[0].z = -fSin
-	theMat[2].z = fCos
-	return theMat
-}
-
-// RotateZ - returns a Mat4 representing a rotation matrix
-// for the angle given in degrees
-func RotateZ(fAngDeg gl.Float) *Mat4 {
-	fAngRad := DegToRad(fAngDeg)
-	fCos := CosGL(fAngRad)
-	fSin := SinGL(fAngRad)
-	theMat := IdentMat4()
-	theMat[0].x = fCos
-	theMat[1].x = -fSin
-	theMat[0].y = fSin
-	theMat[1].y = fCos
-	return theMat
-}
-
 // DebugMat - Pretty-print a []gl.Float slice representing
 // a 16-item transformation matrix.
 func DebugMat(m []gl.Float, s string) {
@@ -328,30 +411,6 @@ func DebugMat(m []gl.Float, s string) {
 		fmt.Fprintf(debugOut, "\t%f\t%f\t%f\t%f\n", m[i*4], m[i*4+1], m[i*4+2], m[i*4+3])
 	}
 	fmt.Fprintf(debugOut, "\t--------------------------------------------------------\n")
-}
-
-func (m *Mat4) Print(s string) {
-	if s == "" {
-		s = "Debugging Matrix"
-	}
-	slen := len(s) + 2
-
-	var dashes string
-	if (58-slen)&1 == 1 {
-		// odd-string
-		dashes = strings.Repeat("-", (58-slen-1)/2) + " " +
-			s + " " + strings.Repeat("-", ((58-slen-1)/2))
-	} else {
-		// even-string
-		dashes = strings.Repeat("-", (58-slen)/2) + " " +
-			s + " " + strings.Repeat("-", (58-slen)/2-1)
-	}
-	fmt.Fprintf(debugOut, "%s\n", dashes)
-	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n", m[0].x, m[1].x, m[2].x, m[3].x)
-	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n", m[0].y, m[1].y, m[2].y, m[3].y)
-	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n", m[0].z, m[1].z, m[2].z, m[3].z)
-	fmt.Fprintf(debugOut, "%9.3f       %9.3f       %9.3f       %9.3f\n\n", m[0].w, m[1].w, m[2].w, m[3].w)
-	//fmt.Fprintf(debugOut, "\t------------------------------------------------------------\n")
 }
 
 // Code from the MESA library, adapted for Go
@@ -490,17 +549,4 @@ func Invert(m []gl.Float) ([]gl.Float, error) {
 	}
 
 	return invOut, nil
-}
-
-// Inverse - returns a new Mat4 representing the inverse of the Mat4
-func (m *Mat4) Inverse() *Mat4 {
-	// Convert Mat4 to an array of floats
-	inArray := m.ToArray()
-	if outArray, err := Invert(inArray); err == nil {
-		// Craft Mat4 from the array of floats
-		outMat, _ := FromArray(outArray)
-		return outMat
-	} else {
-		return nil
-	}
 }
