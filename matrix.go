@@ -42,8 +42,23 @@ const Pi = (gl.Float)(math.Pi)
 var debugOut = os.Stderr
 
 // Struct that kinda, sorta represents a glm/glsl vector
+type Vec3 struct {
+	x, y, z gl.Float
+}
+
 type Vec4 struct {
 	x, y, z, w gl.Float
+}
+
+// Vec4 from a Vec3
+func (v3 *Vec3) V34(f gl.Float) *Vec4 {
+	v4 = Vec4{
+		v3.x,
+		v3.y,
+		v3.z,
+		f,
+	}
+	return &v4
 }
 
 // Struct that kinda, sorta represents a glm/glsl matrix
@@ -191,6 +206,24 @@ func (v *Vec4) Normalize() {
 	v.x = v.x / lenv
 	v.y = v.y / lenv
 	v.z = v.z / lenv
+}
+
+// Normalize - Vec3 version
+func (v *Vec3) Normalize() {
+	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
+	v.x = v.x / lenv
+	v.y = v.y / lenv
+	v.z = v.z / lenv
+}
+
+// Cross product - Vec3 version, u.Cross(v) = u x v
+func (u *Vec3) Cross(v *Vec3) *Vec3 {
+	s := Vec3{
+		u.y*v.z - u.z*v.y,
+		u.z*v.x - u.x*v.z,
+		u.x*v.y - u.y*v.x,
+	}
+	return &s
 }
 
 // ModGL - Take two gl.Floats and return remainder as a gl.Float
