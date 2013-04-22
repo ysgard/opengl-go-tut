@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 2.66.1 r55057</authoring_tool>
     </contributor>
-    <created>2013-04-18T21:59:53</created>
-    <modified>2013-04-18T21:59:53</modified>
+    <created>2013-04-18T22:48:44</created>
+    <modified>2013-04-18T22:48:44</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -25,9 +25,9 @@
           </technique_common>
         </source>
         <source id="Plane-mesh-normals">
-          <float_array id="Plane-mesh-normals-array" count="3">0 0 1</float_array>
+          <float_array id="Plane-mesh-normals-array" count="6">0 0 1 0 0 1</float_array>
           <technique_common>
-            <accessor source="#Plane-mesh-normals-array" count="1" stride="3">
+            <accessor source="#Plane-mesh-normals-array" count="2" stride="3">
               <param name="X" type="float"/>
               <param name="Y" type="float"/>
               <param name="Z" type="float"/>
@@ -37,11 +37,11 @@
         <vertices id="Plane-mesh-vertices">
           <input semantic="POSITION" source="#Plane-mesh-positions"/>
         </vertices>
-        <polylist count="1">
+        <polylist count="2">
           <input semantic="VERTEX" source="#Plane-mesh-vertices" offset="0"/>
           <input semantic="NORMAL" source="#Plane-mesh-normals" offset="1"/>
-          <vcount>4 </vcount>
-          <p>1 0 0 0 2 0 3 0</p>
+          <vcount>3 3 </vcount>
+          <p>1 0 0 0 2 0 3 1 1 1 2 1</p>
         </polylist>
       </mesh>
       <extra><technique profile="MAYA"><double_sided>1</double_sided></technique></extra>
