@@ -50,9 +50,14 @@ type Vec3 struct {
 	x, y, z gl.Float
 }
 
+// Length - return the length of the vector
+func (v *Vec3) Length() gl.Float {
+	return (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
+}
+
 // Normalize - Vec3 version
 func (v *Vec3) Normalize() {
-	lenv := (gl.Float)(math.Sqrt((float64)(v.x*v.x + v.y*v.y + v.z*v.z)))
+	lenv := v.Length()
 	v.x = v.x / lenv
 	v.y = v.y / lenv
 	v.z = v.z / lenv

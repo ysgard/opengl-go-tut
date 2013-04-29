@@ -12,6 +12,13 @@ type MatrixStack struct {
 	matrices []*Mat4
 }
 
+// Create a new matrixstack and initialize it with an identity matrix
+func NewMatrixStack() *MatrixStack {
+	ms := new(MatrixStack)
+	ms.Init()
+	return ms
+}
+
 // Creates a default identity matrix as the current matrix
 func (ms *MatrixStack) Init() {
 	ms.currMat = IdentMat4()
