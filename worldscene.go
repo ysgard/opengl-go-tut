@@ -16,6 +16,10 @@ type ProgramData struct {
 	baseColorUnif           gl.Uint
 }
 
+type TreeData struct {
+	fXPos, fZPos, fTrunkHeight, fConeHeight gl.Float
+}
+
 func (p *ProgramData) LoadProgram(shaders []string) {
 	p.theProgram = glut.CreateShaderProgram(shaders)
 	p.modelToWorldMatrixUnif = gl.GetUniformLocation(p.theProgram, gl.String("modelToWorldMatrix"))
@@ -77,6 +81,11 @@ const g_fParthenonLength = gl.Float(20.0)
 const g_fParthenonColumnHeight = 5.0
 const g_fParthenonBaseHeight = 1.0
 const g_fParthenonTopHeight = 2.0
+
+var g_bDrawLookatPoint = bool(false)
+var g_camTarget = &glut.Vec3{0.0, 0.4, 0.0}
+// Spherical coordinates
+var g_sphereCamRelPos = &glut.Vec3{67.5, -46.0, 150.0}
 
 var g_pConeMesh *glut.Mesh
 var g_pCylinderMesh *glut.Mesh
@@ -247,5 +256,196 @@ func DrawParthenon(modelMatrix *glut.MatrixStack) {
 	gl.UseProgram(0)
 }
 
+var g_forest []TreeData {
+
+	{-45.0, -40.0, 2.0, 3.0},
+	{-42.0, -35.0, 2.0, 3.0},
+	{-39.0, -29.0, 2.0, 4.0},
+	{-44.0, -26.0, 3.0, 3.0},
+	{-40.0, -22.0, 2.0, 4.0},
+	{-36.0, -15.0, 3.0, 3.0},
+	{-41.0, -11.0, 2.0, 3.0},
+	{-37.0, -6.0, 3.0, 3.0},
+	{-45.0, 0.0, 2.0, 3.0},
+	{-39.0, 4.0, 3.0, 4.0},
+	{-36.0, 8.0, 2.0, 3.0},
+	{-44.0, 13.0, 3.0, 3.0},
+	{-42.0, 17.0, 2.0, 3.0},
+	{-38.0, 23.0, 3.0, 4.0},
+	{-41.0, 27.0, 2.0, 3.0},
+	{-39.0, 32.0, 3.0, 3.0},
+	{-44.0, 37.0, 3.0, 4.0},
+	{-36.0, 42.0, 2.0, 3.0},
+
+	{-32.0, -45.0, 2.0, 3.0},
+	{-30.0, -42.0, 2.0, 4.0},
+	{-34.0, -38.0, 3.0, 5.0},
+	{-33.0, -35.0, 3.0, 4.0},
+	{-29.0, -28.0, 2.0, 3.0},
+	{-26.0, -25.0, 3.0, 5.0},
+	{-35.0, -21.0, 3.0, 4.0},
+	{-31.0, -17.0, 3.0, 3.0},
+	{-28.0, -12.0, 2.0, 4.0},
+	{-29.0, -7.0, 3.0, 3.0},
+	{-26.0, -1.0, 2.0, 4.0},
+	{-32.0, 6.0, 2.0, 3.0},
+	{-30.0, 10.0, 3.0, 5.0},
+	{-33.0, 14.0, 2.0, 4.0},
+	{-35.0, 19.0, 3.0, 4.0},
+	{-28.0, 22.0, 2.0, 3.0},
+	{-33.0, 26.0, 3.0, 3.0},
+	{-29.0, 31.0, 3.0, 4.0},
+	{-32.0, 38.0, 2.0, 3.0},
+	{-27.0, 41.0, 3.0, 4.0},
+	{-31.0, 45.0, 2.0, 4.0},
+	{-28.0, 48.0, 3.0, 5.0},
+
+	{-25.0, -48.0, 2.0, 3.0},
+	{-20.0, -42.0, 3.0, 4.0},
+	{-22.0, -39.0, 2.0, 3.0},
+	{-19.0, -34.0, 2.0, 3.0},
+	{-23.0, -30.0, 3.0, 4.0},
+	{-24.0, -24.0, 2.0, 3.0},
+	{-16.0, -21.0, 2.0, 3.0},
+	{-17.0, -17.0, 3.0, 3.0},
+	{-25.0, -13.0, 2.0, 4.0},
+	{-23.0, -8.0, 2.0, 3.0},
+	{-17.0, -2.0, 3.0, 3.0},
+	{-16.0, 1.0, 2.0, 3.0},
+	{-19.0, 4.0, 3.0, 3.0},
+	{-22.0, 8.0, 2.0, 4.0},
+	{-21.0, 14.0, 2.0, 3.0},
+	{-16.0, 19.0, 2.0, 3.0},
+	{-23.0, 24.0, 3.0, 3.0},
+	{-18.0, 28.0, 2.0, 4.0},
+	{-24.0, 31.0, 2.0, 3.0},
+	{-20.0, 36.0, 2.0, 3.0},
+	{-22.0, 41.0, 3.0, 3.0},
+	{-21.0, 45.0, 2.0, 3.0},
+
+	{-12.0, -40.0, 2.0, 4.0},
+	{-11.0, -35.0, 3.0, 3.0},
+	{-10.0, -29.0, 1.0, 3.0},
+	{-9.0, -26.0, 2.0, 2.0},
+	{-6.0, -22.0, 2.0, 3.0},
+	{-15.0, -15.0, 1.0, 3.0},
+	{-8.0, -11.0, 2.0, 3.0},
+	{-14.0, -6.0, 2.0, 4.0},
+	{-12.0, 0.0, 2.0, 3.0},
+	{-7.0, 4.0, 2.0, 2.0},
+	{-13.0, 8.0, 2.0, 2.0},
+	{-9.0, 13.0, 1.0, 3.0},
+	{-13.0, 17.0, 3.0, 4.0},
+	{-6.0, 23.0, 2.0, 3.0},
+	{-12.0, 27.0, 1.0, 2.0},
+	{-8.0, 32.0, 2.0, 3.0},
+	{-10.0, 37.0, 3.0, 3.0},
+	{-11.0, 42.0, 2.0, 2.0},
 
 
+	{15.0, 5.0, 2.0, 3.0},
+	{15.0, 10.0, 2.0, 3.0},
+	{15.0, 15.0, 2.0, 3.0},
+	{15.0, 20.0, 2.0, 3.0},
+	{15.0, 25.0, 2.0, 3.0},
+	{15.0, 30.0, 2.0, 3.0},
+	{15.0, 35.0, 2.0, 3.0},
+	{15.0, 40.0, 2.0, 3.0},
+	{15.0, 45.0, 2.0, 3.0},
+
+	{25.0, 5.0, 2.0, 3.0},
+	{25.0, 10.0, 2.0, 3.0},
+	{25.0, 15.0, 2.0, 3.0},
+	{25.0, 20.0, 2.0, 3.0},
+	{25.0, 25.0, 2.0, 3.0},
+	{25.0, 30.0, 2.0, 3.0},
+	{25.0, 35.0, 2.0, 3.0},
+	{25.0, 40.0, 2.0, 3.0},
+	{25.0, 45.0, 2.0, 3.0},
+}
+
+func DrawForest(modelMatrix *glut.MatrixStack) {
+	for iTree := 0; iTree < len(g_forest); iTree++ {
+		currTree := g_forest[iTree]
+		modelMatrix.Push()
+		modelMatrix.Translate(&glut.Vec4{currTree.fXPos, 0.0, currTree.fZPos, 0.0})
+		DrawTree(modelMatrix, currTree.fTrunkHeight, currTree.fConeHeight)
+	}
+}
+
+func ResolveCamPosition() *glut.Vec3 {
+	tempMat := GetMatrixStack()
+	phi := glut.DegToRad(g_sphereCamRelPos.x)
+	theta := glut.DegToRad(g_sphereCamRelPos.y + 90.0)
+	fSinTheta := glut.SinGL(theta)
+	fCosTheta := glut.CosGL(theta)
+	fCosPhi := glut.CosGL(phi)
+	fSinPhi := glut.SinGL(phi)
+	dirToCamera := &glut.Vec3{fSinTheta * fCosPhi, fCosTheta, fSinTheta * fSinPhi}
+	dirToCamera.MulS(g_sphereCamRelPos.z).Add(g_camTarget)
+	return dirToCamera
+}
+
+// Called to update the display
+// You should call glfw.SwapBuffers() after all your rendering to display what you rendered.
+// If you need continuous updates of the screen, call glutPostRedisplay() at the end of the 
+// function.
+func display() {
+	gl.ClearColor(0.0, 0.0, 0.0, 0.0)
+	gl.ClearDepth(1.0)
+	gl.Clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)
+
+	campPos := ResolveCamPosition()
+	camMatrix := GetMatrixStack()
+	camMatrix.Set(CalcLookAtMatrix(camPos, g_camTarget, &glut.Vec3{0.0, 1.0, 0.0}))
+
+	gl.UseProgram(UniformColor.theProgram)
+	gl.UniformMatrix4fv(UniformColor.worldToCameraMatrixUnif, 1, gl.FALSE, camMatrix.Top())
+	gl.UseProgram(ObjectColor.theProgram)
+	gl.UniformMatrix4fv(ObjectColor.worldToCameraMatrixUnif, 1, gl.FALSE, camMatrix.Top())
+	gl.UseProgram(UniformColorTint.theProgram)
+	gl.UniformMatrix4fv(UniformColorTint.worldToCameraMatrixUnif, 1, gl.FALSE, camMatrix.Top())
+	gl.UseProgram(0)
+
+	modelMatrix := GetMatrixStack()
+	modelMatrix.Push()
+	modelMatrix.Scale(&glut.Vec4(100.0, 1.0, 100.0, 1.0))
+	gl.UseProgram(UniformColor.theProgram)
+	gl.UniformMatrix4fv(UniformColor.modelToWorldMatrixUnif, 1, gl.FALSE, modelMatrix.Top())
+	gl.Uniform4f(UniformColor.baseColorUnif, 0.302, 0.416, 0.0589, 1.0)
+	g_pPlaneMesh.Render()
+	gl.UseProgram(0)
+
+	DrawForest(modelMatrix)
+
+	// Draw the building
+	modelMatrix.Push()
+	modelMatrix.Translate(&glut.Vec4{20.0, 0.0, -10.0, 0.0})
+	DrawParthenon(modelMatrix)
+
+	if g_bDrawLookatPoint == true {
+		gl.Disable(gl.DEPTH_TEST)
+		identity := IdentMat4()
+		modelMatrix.Push()
+		cameraAimVec := g_camTarget.Sub(camPos)
+		modelMatrix.Translate(&glut.Vec4{0.0, 0.0, -cameraAimVec.Length(), 0.0})
+		modelMatrix.Scale(&glut.Vec4{1.0, 1.0, 1.0, 1.0})
+
+		gl.UseProgram(ObjectColor.theProgram)
+		gl.UniformMatrix4fv(ObjectColor.modelToWorldMatrixUnif, 1, gl.FALSE, modelMatrix.Top())
+		gl.UniformMatrix4fv(ObjectColor.worldToCameraMatrixUnif, 1, gl.FALSE, identity)
+		g_pCubeColorMesh.Render()
+		gl.UseProgram(0)
+		gl.Enable(gl.DEPTH_TEST)
+	}
+
+	glfw.SwapBuffers()
+}
+
+// Called whenever teh window is resized.  The new window size is given, in pixels.
+// This is an opportunity to call glViewPort or glScissor to keep up with the change
+// in size
+func reshape(w, h int) {
+	persMatrix := GetMatrixStack()
+	persMatrix.Perspective()
+}

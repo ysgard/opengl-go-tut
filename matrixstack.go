@@ -29,6 +29,11 @@ func (ms *MatrixStack) Top() *Mat4 {
 	return ms.currMat
 }
 
+// Set the current matrix from another matrix
+func (ms *MatrixStack) Set(mc *Mat4) {
+	ms.currMat = mc.Copy()
+}
+
 func (ms *MatrixStack) RotateX(deg gl.Float) {
 	ms.currMat = ms.currMat.MulM(RotateX(deg))
 }
@@ -56,6 +61,8 @@ func (ms *MatrixStack) Invert() {
 func (ms *MatrixStack) MulM(m *Mat4) {
 	ms.currMat = ms.currMat.MulM(m)
 }
+
+func (ms *MatrixStack) Perspective(m *mat4)
 
 // Create a copy of the current matrix and push
 // it onto the stack
