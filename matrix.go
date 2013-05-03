@@ -352,6 +352,31 @@ func (m *Mat4) Inverse() *Mat4 {
 	}
 }
 
+// Returns an orthographic projection matrix
+func Ortho(left, right, bottom, top, nearVal, farVal gl.Float) *Mat4 {
+	m := IdentMat4()
+	m[0].x = 2.0 / (right - left)
+	m[1].y = 2.0 / (top - bottom)
+	m[2].z = -2.0 / (farVal - nearVal)
+	m[3].x = -(right + left) / (right - left)
+	m[3].y = -(top + bottom) / (top - bottom)
+	m[3].z = -(farVal + nearVal) / (farVal - nearVal)
+	return m
+}
+
+// Returns a perspective projection matrix
+func Perspective(fovy, aspect, zNear, zFar gl.Float) *Mat4 {
+	f := 1 / (TanGL(fovy / 2.0))
+	m := IdentMat4()
+	m[0].x = f / aspect
+	m[1].y = f
+	m[2].z = (zFar + zNear) / (zNear - zFar)
+	m[3].w = 0
+	m[2].w = -1
+	m[3].z = (2 * zFar * zNear) / (zNear - zFar)
+	return m
+}
+
 // ************************************ //
 // *     OpenGL utility functions     * //
 // ************************************ //
