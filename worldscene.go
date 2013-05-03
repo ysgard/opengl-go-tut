@@ -396,7 +396,7 @@ func display() {
 	gl.Clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT)
 
 	campPos := ResolveCamPosition()
-	camMatrix := GetMatrixStack()
+	camMatrix := glut.GetMatrixStack()
 	camMatrix.Set(CalcLookAtMatrix(camPos, g_camTarget, &glut.Vec3{0.0, 1.0, 0.0}))
 
 	gl.UseProgram(UniformColor.theProgram)
@@ -447,5 +447,104 @@ func display() {
 // in size
 func reshape(w, h int) {
 	persMatrix := GetMatrixStack()
-	persMatrix.Perspective()
+	persMatrix.Perspective(45.0, gl.Float(w) / gl.Float(h), fzNear, fzFar)
+
+	gl.UseProgram(UniformColor.theProgram)
+	gl.UniformMatrix4fv(UniformColor.cameraToClipMatrixUnif, 1, gl.FALSE, persMatrix.Top())
+	gl.UseProgram(ObjectColor.theProgram)
+	gl.UniformMatrix4fv(ObjectColor.cameraToClipMatrixUnif, 1, gl.FALSE, persMatrix.Top())
+	gl.UseProgram(UniformColorTint.theProgram)
+	gl.UniformMatrix4fv(UniformColorTint.cameraToClipMatrixUnif, 1, gl.FALSE, persMatrix.Top())
+	gl.UseProgram(0)
+
+	gl.Viewport(0, 0, gl.Sizei(w), gl.Sizei(h))
+}
+
+// Called whenever a key on the keyboard was pressed.
+// The key is given by the ''key'' parameter, which is in ASCII.
+// It's often a good idea to have the escape key (ASCII value 27)
+// call leave the program.
+func keyboard(key, state int) {
+	if state == glfw.KeyPress {
+		switch key {
+		case glfw.KeyEsc:
+			shutdown()
+			return
+		case 87: // w
+			g_camTarget.z -= 4.0
+		case 83: // s
+			g_camTarget.z += 4.0
+		case 68: // w
+			g_camTarget.x += 4.0
+		case 65: // a
+			g_camTarget.x -= 4.0
+		case 69: // e
+			g_camTarget.y -= 4.0
+		case 81: // q
+			g_camTarget.y += 4.0
+
+		case 73: // i
+			g_sphereCamRelPos.y -= 11.25
+		case 75: // k
+			g_sphereCamRelPos.y += 11.25
+		case 74: // j
+			g_sphereCamRelPos.x -= 11.25
+		case 76: // l
+			g_sphereCamRelPos.x += 11.25
+		case 111: // o
+			g_sphereCamRelPos.z -= 5.0
+		case 117: // u
+			g_sphereCamRelPos.z += 5.0
+		case glfw.KeyEnter:
+			g_bDrawLookatPoint = !g_bDrawLookatPoint
+			fmt.Fprintf(os.Stdout, "Target: %f, %f, %f\n", g_camTarget.x, g_camTarget.y, g_camTarget.z)
+			fmt.Fprintf(os.Stdout, "Position: %f, %f, %f\n", g_sphereCamRelPos.x, g_sphereCamRelPos.y, g_sphereCamRelPos.z)
+		default:
+			return
+
+		}
+	}
+	g_sphereCamRelPos.y = glutil.Clamp(g_sphereCamRelPos.y, -78.75, -1.0)
+	if g_camTarget.y < 0.0 {
+		g_camTarget.y = 0.0
+	}
+	if g_sphereCamRelPos.z < 5.0 {
+		g_sphereCamRelPos.z = 5.0
+	}
+}
+
+
+func shutdown() {
+	// Delete all buffers, shut down glfw
+	// gl.DeleteBuffers(1, &vertexBufferObject)
+	// gl.DeleteBuffers(1, &indexBufferObject)
+	// gl.DeleteProgram(currentShader)
+	// gl.DeleteVertexArrays(1, &vao)
+	glfw.Terminate()
+}
+
+
+// Main loop
+func main() {
+	// Sit. Down. Good boy.
+	runtime.LockOSThread()
+
+	// Initialize 
+	glfwInitWindow()
+	gl.Init()
+	Initialize()
+	// Set the key handler for the main loop
+	glfw.SetKeyCallback(keyboard)
+	// Set the callback for windows resize
+
+	// Set the resize handler
+	glfw.SetWindowSizeCallback(reshape)
+
+	// Main loop.  Run until it dies, or we find someone better.
+	for glfw.WindowParam(glfw.Opened) == 1 {
+		//fmt.Fprintf(os.Stdout, "*** Frame: %f ***\n", glfw.Time())
+		time.Sleep(time.Millisecond)
+		display()
+	}
+
 }
