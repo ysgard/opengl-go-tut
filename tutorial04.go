@@ -61,7 +61,7 @@ func main() {
 	gl.Init()
 
 	// Dark blue background
-	gl.ClearColor(0.0, 0.0, 0.4, 0.0)
+	gl.ClearColor(0.0, 0.0, 0.2, 0.0)
 
 	// Load Shaders
 	var programID gl.Uint = LoadShaders(
@@ -88,22 +88,26 @@ func main() {
 
 	// Camera matrix
 	view := mathgl.LookAt(
-		4.0, 3.0, -3.0,
+		4.0, 3.0, -6.0,
 		0.0, 0.0, 0.0,
 		0.0, 1.0, 0.0)
 
 	// Model matrix: and identity matrix (model will be at the origin)
 	model := mathgl.Ident4f() // Changes for each model!
+	// We translate the triangle a little bit so it doesn't overlap the cube
+	model2 := mathgl.Mat4f{
+		1.0, 0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0, 0.0,
+		0.0, 0.0, 1.0, 0.0,
+		3.0, 1.0, 0.0, 1.0,
+	}
+
 
 	// Our ModelViewProjection : multiplication of our 3 matrices - remember, matrix mult is other way around
 	MVP := projection.Mul4(view).Mul4(model) // projection * view * model
-
-	// An array of 3 vectors which represents 3 vertices of a triangle
-	/*vertexBufferData2 := [9]gl.Float{	// N.B. We can't use []gl.Float, as that is a slice
-		-1.0, -1.0, 0.0,				// We always want to use raw arrays when passing pointers
-		1.0, -1.0, 0.0,					// to OpenGL
-		0.0, 1.0, 0.0,
-	}*/
+	// For the triangle
+	MVP2 := projection.Mul4(view).Mul4(model2)
+	
 
 	// Three consecutive floats give a single 3D vertex
 	// A cube has 6 faces with 2 triangles each, so this makes 6*2 = 12 triangles,
@@ -158,6 +162,21 @@ func main() {
 		colorBufferData[i+2] = (gl.Float)(rnd.Float32()) // green
 	}
 
+	// An array of 3 vectors which represents 3 vertices of a triangle
+	vertexBufferData2 := [...]gl.Float{	// N.B. We can't use []gl.Float, as that is a slice
+		-1.0, -1.0, 0.0,				// We always want to use raw arrays when passing pointers
+		1.0, -1.0, 0.0,					// to OpenGL
+		0.0, 1.0, 0.0,
+	}
+
+	// Colors for the triangle
+	colorBufferData2 := [...]gl.Float{
+		0.583,  0.771,  0.014,
+    	0.609,  0.115,  0.436,
+    	0.327,  0.483,  0.844,
+	}
+
+
 	// One color for each vertex. They were generated randomly.
 	/*colorBufferData := [...]gl.Float{
 		0.583, 0.771, 0.014,
@@ -203,25 +222,19 @@ func main() {
 	gl.GenBuffers(1, &vertexBuffer)          // Generate 1 buffer, grab the id
 	defer gl.DeleteBuffers(1, &vertexBuffer) // Make sure we delete this, no matter what happens
 	// The following commands will talk about our 'vertexBuffer'
-	gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+	// gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
 	// Give our vertices to OpenGL
 	// WARNING!  This looks EXTREMELY fragile
-	gl.BufferData(
-		gl.ARRAY_BUFFER,
-		gl.Sizeiptr(unsafe.Sizeof(vertexBufferData)), // Already pretty bad
-		gl.Pointer(&vertexBufferData),                // SWEET ZOMBIE JESUS PLEASE DON'T CRASH MY MACHINE
-		gl.STATIC_DRAW)
+	// gl.BufferData(
+	// 	gl.ARRAY_BUFFER,
+	// 	gl.Sizeiptr(unsafe.Sizeof(vertexBufferData)), // Already pretty bad
+	// 	gl.Pointer(&vertexBufferData),                // SWEET ZOMBIE JESUS PLEASE DON'T CRASH MY MACHINE
+	// 	gl.STATIC_DRAW)
 
 	// Let's add some color, red is so passe
 	var colorBuffer gl.Uint
 	gl.GenBuffers(1, &colorBuffer)
 	defer gl.DeleteBuffers(1, &colorBuffer)
-	gl.BindBuffer(gl.ARRAY_BUFFER, colorBuffer)
-	gl.BufferData(
-		gl.ARRAY_BUFFER,
-		gl.Sizeiptr(unsafe.Sizeof(colorBufferData)),
-		gl.Pointer(&colorBufferData),
-		gl.STATIC_DRAW)
 
 	// DEBUG - check MVP array
 	for i, val := range MVP {
@@ -240,16 +253,19 @@ func main() {
 	for (glfw.Key(glfw.KeyEsc) != glfw.KeyPress) &&
 		(glfw.WindowParam(glfw.Opened) == 1) {
 
+		// Cycle the colors
+		for i := 0; i < 3*12*3; i += 3 {
+			colorBufferData[i] = (gl.Float)(rnd.Float32())   // red
+			colorBufferData[i+1] = (gl.Float)(rnd.Float32()) // blue
+			colorBufferData[i+2] = (gl.Float)(rnd.Float32()) // green
+		}
+
+
 		// Clear the screen
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
 		// Want to use our loaded shaders
 		gl.UseProgram(programID)
-
-		// Perform the translation of the camera viewpoint
-		// by sending the requested operation to the vertex shader
-		//mvpm := [16]gl.Float{0.93, -0.85, -0.68, -0.68, 0.0, 1.77, -0.51, -0.51, -1.24, -0.63, -0.51, -0.51, 0.0, 0.0, 5.65, 5.83}
-		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
 		// 1st attribute buffer: vertices
 		gl.EnableVertexAttribArray(0)
@@ -273,27 +289,59 @@ func main() {
 			0,
 			nil) // array buffer offset
 
+		// Draw the cube!
+
+		// Buffer the vertex data
+		gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+		gl.BufferData(
+			gl.ARRAY_BUFFER,
+			gl.Sizeiptr(unsafe.Sizeof(vertexBufferData)),
+			gl.Pointer(&vertexBufferData),
+			gl.STATIC_DRAW)
 		// Buffer new color data
+		gl.BindBuffer(gl.ARRAY_BUFFER, colorBuffer)
 		gl.BufferData(
 			gl.ARRAY_BUFFER,
 			gl.Sizeiptr(unsafe.Sizeof(colorBufferData)),
 			gl.Pointer(&colorBufferData),
 			gl.STATIC_DRAW)
 
-		// Cycle the colors
-		for i := 0; i < 3*12*3; i += 3 {
-			colorBufferData[i] = (gl.Float)(rnd.Float32())   // red
-			colorBufferData[i+1] = (gl.Float)(rnd.Float32()) // blue
-			colorBufferData[i+2] = (gl.Float)(rnd.Float32()) // green
-		}
+		// Perform the translation of the camera viewpoint
+		// by sending the requested operation to the vertex shader
+		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP[0]))
 
-		// Draw the cube!
+		// Render the cube!
 		gl.DrawArrays(gl.TRIANGLES, 0, 12*3) // Starting from vertex 0, 3 vertices total -> triangle
+
+		// Now for the triangle
+
+		// Buffer the vertex data
+		gl.BindBuffer(gl.ARRAY_BUFFER, vertexBuffer)
+		gl.BufferData(
+			gl.ARRAY_BUFFER,
+			gl.Sizeiptr(unsafe.Sizeof(vertexBufferData2)),
+			gl.Pointer(&vertexBufferData2),
+			gl.STATIC_DRAW)
+		// Buffer the color data
+		gl.BindBuffer(gl.ARRAY_BUFFER, colorBuffer)
+		gl.BufferData(
+			gl.ARRAY_BUFFER,
+			gl.Sizeiptr(unsafe.Sizeof(colorBufferData2)),
+			gl.Pointer(&colorBufferData2),
+			gl.STATIC_DRAW)
+
+		// Perform the translation of the triangle
+		gl.UniformMatrix4fv(matrixID, 1, gl.FALSE, (*gl.Float)(&MVP2[0]))
+
+		// Render the triangle
+		gl.DrawArrays(gl.TRIANGLES, 0, 3) // three vertices -> 1 triangle
+
+		glfw.SwapBuffers()
 
 		gl.DisableVertexAttribArray(0)
 		gl.DisableVertexAttribArray(1)
 
-		glfw.SwapBuffers()
+		
 	}
 
 }
